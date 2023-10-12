@@ -1,0 +1,5 @@
+% Node styles
+\tikzstyle{white-node}=[fill=white, draw=black, shape=circle, minimum size=1.2cm]
+
+% Edge styles
+\tikzstyle{arrow}=[->]

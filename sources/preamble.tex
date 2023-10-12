@@ -1,0 +1,64 @@
+%%%%%%%%%
+%   Packages	 %
+%%%%%%%%%
+
+% Floats
+\usepackage{graphicx}
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+\usepackage{color}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% Math packages
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+% Closest font to Times New Roman
+\usepackage{mathptmx}
+
+% To make pretty tables
+\usepackage{booktabs}
+\usepackage{multirow}
+
+% To avoid underfull errors in the bibliography
+\usepackage{etoolbox}
+\apptocmd{\sloppy}{\hbadness 10000\relax}{}{}
+
+% To make cites and references
+\usepackage[hidelinks,pdfusetitle,pdfdisplaydoctitle]{hyperref}
+\usepackage[notocbib]{apacite} 
+\usepackage{doi}
+\renewcommand{\doitext}{}
+
+% TiKZ
+\usepackage{tikz}
+\usetikzlibrary{automata,graphs,positioning,fit,backgrounds,chains,arrows,decorations.pathmorphing,decorations.pathreplacing,calc}
+
+\input{sources/ecs.tikzstyles}
+
+%--------- NEW ENVIRONMENTS --------- You are free to remove or use it
+\newtheorem{definition}{\bf Definition}[chapter]
+\newtheorem{property}{Property}[chapter]
+\newtheorem{claim}{Claim}[chapter]
+\newtheorem{lemma}{\bf Lemma}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{\noindent \bf Theorem}[chapter]
+\newtheorem{corollary}{\bf Corollary}[chapter]
+\newtheorem{pf}{Proof}[chapter]
+\newtheorem{example}{\bf Example}[chapter]
+\newtheorem{remark}{Remark}[chapter]
+
+% En caso de que el título sea muy largo, se puede ajustar el espacio
+% antes y después de este en las dos primeras páginas para que quede centrado.
+
+%\makeatletter
+%  \setlength{\beftitle}{105\p@\@plus24\p@}
+%  \setlength{\afttitle}{65\p@}
+%\makeatother

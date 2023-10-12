@@ -1,0 +1,204 @@
+%%%%%%%%%%%%%%%%%%%%%%%%
+%% Complexity classes %%
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\PTIME}{\textnormal{\textsf{PTIME}}}
+\newcommand{\EXPTIME}{\textnormal{\textsf{EXPTIME}}}
+\newcommand{\TWOEXPTIME}{\textnormal{\textsf{2EXPTIME}}}
+\newcommand{\PSPACE}{\textnormal{\textsf{PSPACE}}}
+\newcommand{\EXPSPACE}{\textnormal{\textsf{EXPSPACE}}}
+\newcommand{\NPSPACE}{\textnormal{\textsf{NPSPACE}}}
+\newcommand{\LOGSPACE}{\textnormal{\textsf{LOGSPACE}}}
+\newcommand{\ALOGSPACE}{\textnormal{\textsf{ALOGSPACE}}}
+\newcommand{\NLOGSPACE}{\textnormal{\textsf{NLOGSPACE}}}
+\newcommand{\coNLOGSPACE}{\textnormal{\textsf{coNLOGSPACE}}}
+\newcommand{\NP}{\textnormal{\textsf{NP}}}
+\newcommand{\coNP}{\textnormal{\textsf{coNP}}}
+\newcommand{\FPT}{\textnormal{\textsf{FPT}}}
+\newcommand{\pitwop}{\Pi_2^p}
+
+%%%%%%%%%%%%%%%%%%
+%% Span-related %%
+%%%%%%%%%%%%%%%%%%
+
+\newcommand{\bbN}{\mathbb{N}}
+\newcommand{\Span}[2]{[#1, #2\rangle}
+\newcommand{\osymbol}{\blacksquare}
+\newcommand{\cset}{\operatorname{set}}
+\newcommand{\oout}{\operatorname{out}}
+
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\eol}{\rotatebox[origin=l]{180}{\ensuremath\Rsh}}
+\newcommand{\bof}{\rotatebox[origin=l]{180}{\ensuremath\Lsh}}
+%\newcommand{\nl}{\hookleftarrow}
+\newcommand{	\VV}{\mathcal{V}}
+\newcommand{	\OO}{\mathcal{O}}
+\newcommand{	\CC}{\mathcal{C}}
+\newcommand{	\NN}{\mathcal{N}}
+\newcommand{	\sub}{\text{span}}
+\newcommand{	\doc}{\text{doc}}
+\newcommand{	\cont}{\text{str}}
+\newcommand{	\var}{\text{var}}
+\newcommand{	\ivar}{\text{ivar}}
+\newcommand{	\hs}{\hat{\sigma}}
+\newcommand{\op}[1]{\langle#1\rangle}
+\newcommand{	\name}{\text{name}}
+\newcommand{	\dom}{\text{dom}}
+\newcommand{\sem}[1]{\llbracket#1\rrbracket}
+\newcommand{\semseq}[1]{\llbracket#1\rrbracket^{\operatorname{seq}}}
+\newcommand{\sems}[1]{\sem{#1}'}
+\newcommand{\semp}[1]{\llceil{#1}\rrfloor}
+\newcommand{\semg}[1]{\llbracket #1 \rrbracket_{d}}
+\newcommand{\semd}[1]{\sem{#1}_{d}}
+\newcommand{\seme}[2]{\sem{#1}_{#2}}
+\newcommand{\semsd}[1]{\sems{#1}_{d}}
+\newcommand{\sempd}[1]{\semp{#1}_{d}}
+\newcommand{\semds}[1]{\sem{#1}_{d, \sigma}}
+\newcommand{\semcs}[1]{\sem{#1}_{\CC, \sigma}}
+\newcommand{	\first}{\text{first}}
+\newcommand{	\last}{\text{last}}
+
+\newcommand{	\rematch}{\textsf{REmatch}}
+
+
+\newcommand{\trans}[2][]{\raisebox{-1pt}[10pt][0pt]{$\overset{#2}{\underset{^{#1}}{\raisebox{0pt}[3pt][0pt]{$\relbar\mspace{-8mu}\rightarrow$}}}$}}
+
+\newcommand{\longtrans}[2][]{\raisebox{-1pt}[10pt][0pt]{$\overset{#2}{\underset{^{#1}}{\raisebox{0pt}[3pt][0pt]{$\relbar\mspace{-8mu}\longrightarrow$}}}$}}
+
+\newcommand{\VA}{\ensuremath{\mathrm{VA}}}
+\newcommand{\EVA}{\ensuremath{\mathrm{eVA}}}
+\newcommand{\EVAs}{\ensuremath{\mathrm{eVAs}}}
+\newcommand{\sEVA}{\ensuremath{\mathrm{seVA}}}
+\newcommand{\fEVA}{\ensuremath{\mathrm{feVA}}}
+\newcommand{\dsEVA}{\ensuremath{\mathrm{\text{deterministic }seVA}}}
+\newcommand{\dfEVA}{\ensuremath{\mathrm{\text{deterministic }feVA}}}
+\newcommand{\fVA}{\ensuremath{\mathrm{fVA}}}
+\newcommand{\sVA}{\ensuremath{\mathrm{sVA}}}
+
+
+
+
+
+\newcommand{\mtt}[1]{\mathtt{#1}}
+
+\DeclareMathOperator{\pruns}{\textit{part-runs}}
+\DeclareMathOperator{\runs}{\textit{runs}}
+\DeclareMathOperator{\aruns}{ARuns}
+
+\newcommand{\SRE}{\ensuremath{\mathrm{SRE}}}
+\newcommand{\kSRE}{\ensuremath{\mathrm{kSRE}}}
+\newcommand{\SREf}{\ensuremath{\mathrm{SREf}}}
+\newcommand{\RGX}{\ensuremath{\mathrm{RGX}}}
+\newcommand{\fRGX}{\ensuremath{\mathrm{funcRGX}}}
+\newcommand{\fSRGX}{\ensuremath{\mathrm{funcRGX}}}
+\newcommand{\SRGX}{\ensuremath{\mathrm{spanRGX}}}
+\newcommand{\seqRGX}{\ensuremath{\mathrm{seqRGX}}}
+\newcommand{\GRGX}{\ensuremath{\mathrm{GRGX}}}
+\newcommand{\kRGX}{\ensuremath{\mathrm{kRGX}}}
+\newcommand{\Treelike}{\emph{tree-like}}
+\newcommand{\Vars}{\mathcal{V}}
+\newcommand{\Annots}{\Gamma}
+
+\newcommand{\Semantic}[1]{\llbracket#1\rrbracket}
+\newcommand{\Language}[1]{\mathcal{L}(#1)}
+\newcommand{\Var}{\operatorname{var}}
+\newcommand{\Succ}{succ}
+
+\newcommand{\Open}[1]{[ #1}
+\newcommand{\OpenSmall}[1]{#1~\ ~\mkern-10mu\vdash}
+\newcommand{\Close}[1]{#1 \rangle}
+
+\newcommand{\ENUM}{\text{\sc Eval}}
+
+\newcommand{\eval}{\text{\sc Ann}}
+\newcommand{\memb}{\text{\sc Memb}}
+\newcommand{\nemp}{\text{\sc NonEmp}}
+\newcommand{\mdcheck}{\text{\sc ModelCheck}}
+\newcommand{\EVAL}{\text{\sc Eval}}
+\newcommand{\COUNT}{\text{\sc Count}}
+\newcommand{\sat}{\text{\sc Sat}}
+\newcommand{\containment}{\text{\sc Containment}}
+\newcommand{\iequiv}{\text{\sc InstEquiv}}
+\newcommand{\eequiv}{\text{\sc Equiv}}
+\newcommand{\isd}{\text{isDoc}}
+\newcommand{\cstring}[1]{\vdash\!#1\!\dashv}
+\newcommand{\LL}{{\mathcal L}}
+\newcommand{\PP}{{\mathcal P}}
+\newcommand{\sre}{{\mathcal SRE}}
+\newcommand{\nee}{{\mathcal NE}}
+\newcommand{\ap}{{\mathcal AP}}
+\newcommand{\nap}{{\mathcal NVP}}
+
+\newcommand{\mi}[1]{\text{\it #1}}
+\newcommand{\spa}{\text{\textvisiblespace}}
+
+\DeclareMathOperator{\Perm}{Perm}
+\DeclareMathOperator{\Op}{Op}
+
+% To fix an error when using references in the title of sections.
+\newcommand{\secref}[1]{\lowercase{\ref{#1}}}
+
+%Ref-word up notation:
+\newcommand{\rr}{{\bf{r}}}
+\newcommand{\SG}{{\bf{\Sigma}}}
+\newcommand{\clr}{{\textsc{clr}}}
+
+\DeclareMathOperator{\out}{\textit{out}}
+\DeclareMathOperator{\pout}{\textit{part-out}}
+
+\newcommand{\resultlist}{\operatorname{\textit{resultList}}}
+\newcommand{\plist}{\operatorname{\textit{list}}}
+\newcommand{\plistold}{\plist^{\operatorname{\textit{old}}}}
+
+
+\renewcommand{\dag}{{DAG}\xspace}
+\newcommand{\dags}{{DAGs}\xspace}
+
+\newcommand{\pfirst}{\operatorname{first}}
+\newcommand{\plast}{\operatorname{last}}
+\newcommand{\pfirsto}{\pfirst^{\operatorname{old}}}
+\newcommand{\plasto}{\plast^{\operatorname{old}}}
+\newcommand{\newnode}{\operatorname{node}}
+\newcommand{\newmap}{\operatorname{map}}
+\newcommand{\markers}{\operatorname{Markers}}
+
+\newcommand{\cbot}{\bot}
+
+\newcommand{\cextend}{\texttt{extend}}
+\newcommand{\cunion}{\texttt{union}}
+\newcommand{\cenumerate}{\texttt{enumerate}}
+\newcommand{\ctable}{\operatorname{T}}
+\newcommand{\ckeys}{\operatorname{keys}}
+
+\newcommand{\odet}{{\operatorname{det}}}
+\newcommand{\mdetnext}{\texttt{next}}
+
+\newcommand{\cdet}{\mathtt{DET}}
+\newcommand{\cgarbagecollector}{\mathtt{GarbageCollector}}
+\newcommand{\ds}{\mathtt{NM}}
+\newcommand{\cinit}{\texttt{emptyNode}}
+\newcommand{\coid}{\mathtt{n}}
+\newcommand{\citer}{\texttt{phase}}
+\newcommand{\cstateslists}{\textsf{setslist}}
+\newcommand{\cstateslistss}{\textsf{setslists}}
+
+\let\oldReturn\Return
+\renewcommand{\Return}{\State\oldReturn}
+
+
+%%%%%%%%%%%%%%%%%%%%%
+%% Figure Commands %%
+%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\spanNode}[2]{\node[outer sep=0mm, inner sep=10mm,text height=2mm] (l#1)at (0,0) {\Large \texttt{#2}\vphantom{y}};
+	\node[node distance=3.5mm,below of=l#1] {\tiny \texttt{#1}};}
+\newcommand{\spanNodeP}[3]{\node[outer sep=0mm, inner sep=10mm, right of=l#1, node distance=4mm, text height=2mm, text centered] (l#2) {\Large \texttt{#3}\vphantom{y}};
+	\node[node distance=3.5mm,below of=l#2] {\tiny  \texttt{#2}};}
+
+
+\newcommand\Vtextvisiblespace[1][.3em]{%
+	\mbox{\kern.06em\vrule height.3ex}%
+	\vbox{\hrule width#1}%
+	\hbox{\vrule height.3ex}}
