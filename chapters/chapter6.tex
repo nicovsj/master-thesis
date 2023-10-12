@@ -27,8 +27,8 @@ Each module was described in a chapter of the thesis. The Rewriting module (Chap
 We use the following three real-world text corpora:
 \begin{enumerate}
 	\item \textsf{Literature.}  This is a combined corpus of collected works by English literature greats: Mark Twain, William Shakespeare, and Charles Dickens. We used texts provided by the Project Gutenberg\footnote{\url{https://www.gutenberg.org/}}, and concatenated them into a single document of size 50.7 MB and around 50 million characters.
-	\item \textsf{DNA.} This dataset consists of DNA sequences. In particular, we used the list of proteomes of the zebrafish organism, as provided by the BLAST initiative~\cite{blast}. The combined size of this dataset is 38.5 MB and 38.5 million characters.
-	\item \textsf{SPARQL.} Our final dataset consists of public query logs of the (now defunct) British Museum SPARQL endpoint, as collected by the Linked SPARQL Queries Dataset team \cite{LSQ}. We merged all the logs into a single document weighing 71.1 MB, and consisting of roughly 76 million characters.
+	\item \textsf{DNA.} This dataset consists of DNA sequences. In particular, we used the list of proteomes of the zebrafish organism that is provided by the BLAST initiative~\cite{blast}. The combined size of this dataset is 38.5 MB and 38.5 million characters.
+	\item \textsf{SPARQL.} Our final dataset consists of public query logs of the (now defunct) British Museum SPARQL endpoint, as extracted and collected by the Linked SPARQL Queries Dataset team \cite{LSQ}. We merged all the logs into a single document weighing 71.1 MB, and consisting of roughly 76 million characters.
 \end{enumerate}
 
 \subsection{The queries}
@@ -85,7 +85,7 @@ Here each new version includes all the optimizations  previously listed. For exa
 
 
 \subsection{Discussion}
-As we can observe (Figure~\ref{fig-optimizations} (a)), among all three datasets, adding the \textsc{Node Manager} module makes the runtime of our experiments drop noticeably, however the real savings come from the \textsc{Next index} optimization, which allows us check whether a character triggers an automaton transition instantaneously. The \textsc{Offset} and \textsc{Light Search} version reduces the runtime in a meaningful manner as well. Concerning memory consumption (Table~\ref{tab-memory}), \textsc{Node Manager} drastically reduces the memory consumption compared to the \textsc{Naive} version. Due to storing more information in each transition, \textsc{Next index} increases memory consumption, and \textsc{Offset} and \textsc{Early Output} tend to decrease it again due to discarding nodes that are not needed any more by the algorithm sooner. Considering time to first output (Figure~\ref{fig-optimizations} (b)), we can see that \textsc{Next index} drops the runtime by an order of magnitude, and another order of magnitude is gained by \textsc{Early Output}, whose main objective is precisely this: deliver the outputs to the user as soon as possible. Overall, our experiments show that the proposed optimizations, which are closely linked to the \rematch\ architecture (Figure~\ref{fig:architecture}), indeed improve the performance of base algorithm, denoted \textsc{Naive}, by orders of magnitude.
+As we can observe (Figure~\ref{fig:opt-time}), among all three datasets, adding the \textsc{Node Manager} module makes the runtime of our experiments drop noticeably, however the real savings come from the \textsc{Next index} optimization, which allows us check whether a character triggers an automaton transition instantaneously. The \textsc{Offset} and \textsc{Light Search} version reduces the runtime in a meaningful manner as well. Concerning memory consumption (Table~\ref{tab-memory}), \textsc{Node Manager} drastically reduces the memory consumption compared to the \textsc{Naive} version. Due to storing more information in each transition, \textsc{Next index} increases memory consumption, and \textsc{Offset} and \textsc{Early Output} tend to decrease it again due to discarding nodes that are not needed any more by the algorithm sooner. Considering time to first output (Figure~\ref{fig-optimizations}), we can see that \textsc{Next index} drops the runtime by an order of magnitude, and another order of magnitude is gained by \textsc{Early Output}, whose main objective is precisely this: deliver the outputs to the user as soon as possible. Overall, our experiments show that the proposed optimizations, which are closely linked to the \rematch\ architecture (Figure~\ref{fig:architecture}), indeed improve the performance of base algorithm, denoted \textsc{Naive}, by orders of magnitude.
 
 
 \begin{table}[t]
@@ -101,7 +101,6 @@ As we can observe (Figure~\ref{fig-optimizations} (a)), among all three datasets
 	\end{tabular}
 	\caption{Average memory usage of \rematch\ versions (in MB).}
 	\label{tab-memory}
-	\vspace{-5mm}
 \end{table}
 
 \section{Comparison with other engines}\label{ss:comp}
@@ -147,10 +146,8 @@ In this discussion, it is essential to recall that REmatch is incomparable with 
 		\centering
 		\includegraphics[width=\textwidth]{figures/lookahead-time.pdf}
 	\end{subfigure}
-	\vspace{-3mm}
 	\caption{Runtime metrics of our experiments}
 	\label{fig:comparison}
-	\vspace{-3mm}
 \end{figure}
 
 

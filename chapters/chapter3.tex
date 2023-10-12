@@ -1,7 +1,7 @@
 % !TeX spellcheck = en_US
 % !TeX root = ../Thesis.tex
 
-In this section, we present the module in charge of filtering the input document and reducing the load of the main algorithm. The plan is to run a light process that scans the input and quickly finds sections of the document where there is at least one output. Formally, let $\cA$ be the logical VA constructed from a REQL query, and let $d$ be a document. For a mapping $\mu$ and a number~$\ell$, let $\mu_{+\ell}$ be a mapping shifted by $\ell$, namely, for every variable $x$, $\mu_{+\ell}(x) = \Span{i+\ell}{j+\ell}$ where $\mu(x) = [i, j\rangle$. A \emph{segmentation} of $d$ is a sequence $[i_1, j_1\rangle, \ldots, [i_k, j_k\rangle$ of spans of $d$ such that $j_{h} < i_{h+1}$ for every $h < k$. We say that the segmentation is \emph{valid} for $\cA$ over $d$ iff
+In this chapter, we present the module in charge of filtering the input document and reducing the load of the main algorithm. The plan is to run a light process that scans the input and quickly finds sections of the document where there is at least one output. Formally, let $\cA$ be the logical VA constructed from a REQL query, and let $d$ be a document. For a mapping $\mu$ and a number~$\ell$, let $\mu_{+\ell}$ be a mapping shifted by $\ell$, namely, for every variable $x$, $\mu_{+\ell}(x) = \Span{i+\ell}{j+\ell}$ where $\mu(x) = [i, j\rangle$. A \emph{segmentation} of $d$ is a sequence $[i_1, j_1\rangle, \ldots, [i_k, j_k\rangle$ of spans of $d$ such that $j_{h} < i_{h+1}$ for every $h < k$. We say that the segmentation is \emph{valid} for $\cA$ over $d$ iff
 $$
 	\semd{\cA} = \cup_{h=1}^k \{\mu_{+i_h} \mid \mu \in \sem{\cA}(d[i_h, j_h\rangle) \}
 $$

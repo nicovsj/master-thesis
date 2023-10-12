@@ -1,13 +1,24 @@
 Let $\texttt{e}$ be a REQL. We'll show that it there exists an $\varepsilon$-LogicalVA $\cA$ such that $\sem{\texttt{e}}_d = \sem{\cA}_d$ over any document $d$.  We proceed by induction. For each of the base cases shown in Table \ref*{tab-semantics} we can construct a LogicalVA $\cA$ with two states, one initial and one accepting, and with a single transition labeled as the char class equivalent to $\texttt{e}$ from the initial state to the accepting state. Is easy to see that this LogicalVA $\cA$ satisfies $\sem{\texttt{e}}_d = \sem{\cA}_d$ over any document $d$.
 
-The inductive case goes as follows: without any loss of generality suppose that $\texttt{e}_1$ and $\texttt{e}_2$ are two REQLs such that there exists $\cA_1 = (Q_1, \delta_1, q_0^1, q_f^1)$ and $\cA_2 = (Q_2, \delta_2, q_0^2, q_f^2)$ both LogicalVAs that satisfy $\sem{\texttt{e}_1}_d = \sem{\cA_1}_d$ and  $\sem{\texttt{e}_2}_d = \sem{\cA_2}_d$ over any document $d$. Then, 
+The inductive case goes as follows: without any loss of generality suppose that $\texttt{e}_1$ and $\texttt{e}_2$ are two REQLs such that there exists $\cA_1 = (Q_1, \delta_1, q_0^1, q_f^1)$ and $\cA_2 = (Q_2, \delta_2, q_0^2, q_f^2)$ both LogicalVAs that satisfy $\sem{\texttt{e}_1}_d = \sem{\cA_1}_d$ and  $\sem{\texttt{e}_2}_d = \sem{\cA_2}_d$ over any document $d$. Then,
 
 \begin{itemize}
-    \item For $\texttt{e} = \texttt{e}_1\texttt{e}_2$ the LogicalVA $\cA = (Q_1 \cup Q_2, \delta_1 \cup \delta_2 \cup \{(q_f^1, \varepsilon, q_0^2)\}, q_0^1, q_f^2)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
-    \item For $\texttt{e} = \texttt{e}_1\texttt{|}\texttt{e}_2$ the LogicalVA $\cA = (Q_1 \cup Q_2 \cup \{q_0, q_f\}, \delta_1 \cup \delta_2 \cup \{(q_0, \varepsilon, q_0^1), (q_0, \varepsilon, q_0^2), (q_f^1, \varepsilon, q_f), (q_f^2, \varepsilon, q_f) \}, q_0, q_f^2)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
-    \item For $\texttt{e} = \texttt{!x\{}\texttt{e}_1\texttt{\}}$ the LogicalVA $\cA_\texttt{e} = (Q' \cup \{q_0, q_f\}, \delta' \cup \{(q_0, [x, q_0'), (q_f', x\rangle, q_f)\}, q_0, q_f)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA_\texttt{e}}_d$.
-    \item For $\texttt{e} = \texttt{e}_1\texttt{*}$ the LogicalVA $\cA = (Q_1, \delta_1 \cup \{(q_0^1, \varepsilon, q_f^1), (q_f^1, \varepsilon, q_0^1)\}, q_0^1, q_f^1)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
-    \item For $\texttt{e} = \texttt{e}_1\texttt{?}$ the LogicalVA $\cA = (Q_1, \delta_1 \cup \{(q_0^1, \varepsilon, q_f^1)\}, q_0^1, q_f^1)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
-    \item For $\texttt{e} = \texttt{e}_1\texttt{+}$ the LogicalVA $\cA = (Q_1, \delta_1 \cup \{(q_f^1, \varepsilon, q_0^1)\}, q_0^1, q_f^1)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
-    \item For $\texttt{e} = \texttt{e}_1\texttt{\{n,m\}}$ we can see that over any document $d$, $\sem{\texttt{e}}_d = \sem{(\texttt{e}_1)^n(\texttt{e}_1\texttt{?})^{m-n}}_d$ which can be easily shown to have an equivalent LogicalVA by applying induction with the previous rules.
+	\item For $\texttt{e} = \texttt{e}_1\texttt{e}_2$ the LogicalVA $\cA = (Q_1 \cup Q_2, \delta_1 \cup \delta_2 \cup \{(q_f^1, \varepsilon, q_0^2)\}, q_0^1, q_f^2)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
+	\item For $\texttt{e} = \texttt{e}_1\texttt{|}\texttt{e}_2$ the LogicalVA $\cA = (Q', \delta', q_0', q_f')$ with
+	      \begin{align*}
+		      Q'      & = Q_1 \cup Q_2 \cup \{q_0, q_f\}                                                                                                              \\
+		      \delta' & = \delta_1 \cup \delta_2 \cup \{(q_0, \varepsilon, q_0^1), (q_0, \varepsilon, q_0^2), (q_f^1, \varepsilon, q_f), (q_f^2, \varepsilon, q_f) \} \\
+		      q_0'    & = q_0                                                                                                                                         \\
+		      q_f'    & = q_f
+	      \end{align*}
+	      is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
+	\item For $\texttt{e} = \texttt{!x\{}\texttt{e}_1\texttt{\}}$ the LogicalVA $\cA$ is defined as
+	      \[
+		      \cA = (Q' \cup \{q_0, q_f\},\delta' \cup \{(q_0, [x, q_0'), (q_f', x\rangle, q_f)\}, q_0, q_f)
+	      \]
+	      such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA_\texttt{e}}_d$.
+	\item For $\texttt{e} = \texttt{e}_1\texttt{*}$ the LogicalVA $\cA = (Q_1, \delta_1 \cup \{(q_0^1, \varepsilon, q_f^1), (q_f^1, \varepsilon, q_0^1)\}, q_0^1, q_f^1)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
+	\item For $\texttt{e} = \texttt{e}_1\texttt{?}$ the LogicalVA $\cA = (Q_1, \delta_1 \cup \{(q_0^1, \varepsilon, q_f^1)\}, q_0^1, q_f^1)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
+	\item For $\texttt{e} = \texttt{e}_1\texttt{+}$ the LogicalVA $\cA = (Q_1, \delta_1 \cup \{(q_f^1, \varepsilon, q_0^1)\}, q_0^1, q_f^1)$ is such that over any document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
+	\item For $\texttt{e} = \texttt{e}_1\texttt{\{n,m\}}$ we can see that over any document $d$, $\sem{\texttt{e}}_d = \sem{(\texttt{e}_1)^n(\texttt{e}_1\texttt{?})^{m-n}}_d$ which can be easily shown to have an equivalent LogicalVA by applying induction with the previous rules.
 \end{itemize}

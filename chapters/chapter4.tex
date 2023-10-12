@@ -13,8 +13,6 @@ More formally, we use the framework of \emph{enumeration algorithms}, which rece
 \end{enumerate}
 In the case of REQL queries, the desired result is the set of all the output mappings. We will say that an enumeration algorithm works with \emph{output-linear delay}, if the time to print out the $i$-th output $o_i$, measured as the time needed from printing the $(i-1)$-st output $o_{i-1}$ to finishing the output $o_i$, is proportional to the length of~$o_i$, and independent of the size of the document, the query, or the size of the output set $O$. The algorithm is also required to terminate immediately after outputting the final output. If these conditions are met, the time needed to enumerate $O$ is $\mathcal{O}(|O|)$, hence output-linear. 
 
-%Then the purpose of this section is to develop the module in charge of managing the outputs to guarantee output-linear delay and manage the system's memory efficiently.
-
 Next we describe the \rematch\ module for managing the system memory and the data structure supporting output-linear delay.
 
 \section{Enumerable compact set} 
@@ -151,48 +149,3 @@ $\ds$ implements these three operations, taking constant time for each operation
 \section{Early output (Optimization)} 
 
 Note again that $\ds$ allows enumerating the outputs from a node at any point without further preprocessing. This fact is crucial for the optimization that we call \emph{early output enumeration}. Specifically, when evaluating a logical VA over a document, we can often detect whether we reach a final state before the entire document is read completely (for details, see Chapter~\ref{chpt:evaluation}). In essence, this means that we can provide certain outputs to the user at this point before continuing to construct the ECS in its entirety. The benefits are twofold: (i) the outputs are delivered to the user as soon as possible, similarly as pipelined evaluation is done in databases; and (ii) once we enumerate these outputs, we can delete the unused nodes, thus saving storage space. This optimization is highly effective in decreasing the memory usage and decreasing the time to deliver the first output (see Chapter~\ref{chpt:experiments}).
-
- %For instance, in the ECS from Figure~\ref{fig-ecs} the node $(y\rangle,7)$ can be detected as an output node, so the nodes $(y\rangle,7)$ and $([y,4)$ can be discarded after enumerating this output. Notice that the nodes $([x,0)$ and $(x\rangle,2)$ can not be eliminated since they are still part of another output.
-
-
-
-%-------------------
-%
-%We discuss the output structure, enumeration, and garbage collector:
-%\begin{enumerate}
-%	\item Data structure from Martin. 
-%	\item Enumeration. 
-%	\item Garbage collector.
-%	\item Early output.
-%\end{enumerate}
-%\cristian{I left early output here, because the next section looks to big, and, if we can explain it here, it makes more sense.}
-%
-%\cristian{Define here the connection between output mappings and output sequences. The idea is to represent a mapping as a sequence of pairs (set of markers, index). The idea would be to explain the representation here with the data structure. To then use it in the next section. }
-
-
-
-%\paragraph*{Enumeration with output-linear delay.} 
-%We wish to be careful with what we mean by ``efficiently generate''
-%$\tab(M)$ from $R$ when $M$ is finite. Indeed, because $R$ can be exponentially
-%more succinct than $M$ and $\tab(M)$, the total time to generate $\tab(M)$ from
-%$R$ will obviously be exponential in $R$ in the worst case. This exponential
-%complexity is only due to the exponential number of tuples that we need to
-%generate: we will show that generating individual tuples in $\tab(M)$ from $R$
-%is efficient, in the sense that it takes only time proportional to the size of the tuple
-%being generated---independently of the size of $R$, or $M$, or $\tab(M)$. To
-%formalize this notion, we adopt the framework of \emph{enumeration
-%  algorithms}. Enumeration algorithms are an attractive way of gauging the
-%complexity of algorithms that need to generate large (or infinite) sets, which
-%have recently received significant attention in the database
-%community, both from a theoretical~\cite{AmarilliBMN-tods21,FlorenzanoRUVV20,LosemannM-lics14,SchweikardtSV-jacm22,BerkholzGS-siglog20,Segoufin-icdt13} and practical point~\cite{IdrisUVVL-vldbj20,IdrisUV-sigmod17,TziavelisAGRY-pvldb20}.
-%
-%We require the following definitions. Given an input $x$, an algorithm is said
-%to \emph{enumerate} a multiset $O$ if it outputs the elements of $O$ one by one
-%in some order $o_1, o_2, o_3, \dots$, such that the number of times an element $o$ occurs in this enumeration equals its multiplicity in $O$. (Repeated elements need not be subsequent in the enumeration.) In particular, if $O$ is a set, then the enumeration cannot contain duplicates. It enumerates $O$
-%\emph{with output-linear delay} if the time required to output the $i$-th element $o_i$,
-%measured as the difference in time between outputting $o_{i-1}$ (or the start of
-%the algorithm, when $i=1$) and finishing outputting $o_i$, is proportional to
-%the size of $o_i$, independent of the size of $O$ or of the input $x$. If $O$ is
-%finite, then it is also required that the algorithm terminates immediately after
-%outputting the last element.  In that case, the total time that the algorithm
-%takes to enumerate $O$ is hence $\bigo(\size{O})$, i.e., linear in $O$.
