@@ -200,6 +200,6 @@ Algorithm~\ref{alg:segmentation} maintains the invariant that, after reading $a_
 	Given a logical VA $\cA$ and a document $d$, Algorithm~\ref{alg:segmentation} outputs a sequence of spans $[i_1, j_1\rangle, \ldots, [i_k, j_k\rangle$ that is a valid segmentation for $\cA$ over $d$.
 \end{theorem}
 
-Note that the load of computing Algorithm~\ref{alg:segmentation} is low: we need one pass over the document and for each letter we need to perform a small number of simple operations (i.e., apply the function $\fnext$ and check at most two if-statements). Given that we can cache the output $\fnext(S, a)$ for each new pair $(S, a)$, the cost per new letter is low when the caching of the function $\fnext$ stabilizes. This is probably the main reason why filtering runs faster   than performing the main evaluation algorithm (see Section~\ref{sec:experiments} for further discussion).
+Note that the load of computing Algorithm~\ref{alg:segmentation} is low: we need one pass over the document and for each letter we need to perform a small number of simple operations (i.e., apply the function $\fnext$ and check at most two if-statements). Given that we can cache the output $\fnext(S, a)$ for each new pair $(S, a)$, the cost per new letter is low when the caching of the function $\fnext$ stabilizes. This is probably the main reason why filtering runs faster   than performing the main evaluation algorithm (see Chapter~\ref{chpt:experiments} for further discussion).
 
 
