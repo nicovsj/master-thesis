@@ -2,6 +2,10 @@
 
 This repository contains the source code and documentation for my master thesis written in LaTeX.
 
+The paper in which this thesis is based is [REmatch: A Novel Regex Engine for Finding All Matches](https://dl.acm.org/doi/abs/10.14778/3611479.3611488), which I co-authored with [Cristian Riveros](https://criveros.sitios.ing.uc.cl/) and [Domagoj Vrgoč](https://dvrgoc.ing.puc.cl/).
+
+The LaTeX template used for this thesis is based on the [Template-LaTeX-MSc-PUC](https://github.com/sebacastroh/Template-LaTeX-MSc-PUC) repository authored by [sebahcastro](https://github.com/sebacastroh).
+
 ## Overview
 
 - `Thesis.tex`: The main LaTeX file for the thesis.
