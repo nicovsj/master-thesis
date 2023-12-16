@@ -1,21 +1,31 @@
-% !TeX root = ../main.tex
-% !TeX spellcheck = en_US
+% !TeX root = ../main.tex !TeX spellcheck = en_US
 
-This section introduces REQL, a RegEx Query Language for information extraction, that we implement in \rematch. The language is an extension of the classical RegEx syntax (e.g. POSIX Basic Regular Expressions) familiar to most users. On the other hand, the semantics is inspired by the document spanner framework~\cite{FaginKRV15} that captures all appearances of a pattern in the document. 
+This section introduces REQL, a RegEx Query Language for information extraction,
+that we implement in \rematch. The language is an extension of the classical
+RegEx syntax (e.g. POSIX Basic Regular Expressions) familiar to most users. On
+the other hand, the semantics is inspired by the document spanner
+framework~\cite{FaginKRV15} that captures all appearances of a pattern in the
+document. 
 
-In the following, we present the formal syntax and semantics of REQL, and provide several examples of REQL queries.
+In the following, we present the formal syntax and semantics of REQL, and
+provide several examples of REQL queries.
 
 \section{Documents and spans}
 
-We follow the theoretical framework of documents and spans introduced in~\cite{FaginKRV15}. For us, a document $d$ is simply a string over some finite alphabet (e.g. the ASCII charset, UTF-8, or a similar encoding scheme)\footnote{Note that a multi-line document is simply a single string.}. 
-We write $d = a_0a_1 \ldots a_{n-1}$ to denote a document of length $|d| = n$ where $a_{i}$ is
-the $i$-symbol (note that the first symbol starts from $0$)\footnote{In
-\cite{FaginKRV15}, the first position is $1$. We use $0$
-to be compliant with programming languages and RegEx engines which use $0$ as the start position.}. An example of a document is given in Figure~\ref{fig-doc}. A \emph{span} of a document $d$ (also called a \emph{match}) is a
-pair $s = [i,j\rangle$ of natural numbers $i$ and $j$ with $0 \leq i \leq j\leq
-|d|$. 
-In that case, $s$ is associated with the continuous region of the document~$d$ whose content is the substring of $d$ from position $i$ to position $j-1$.
-We denote this substring by $d(s)$ or $d(i,j)$. For instance, $d_1([0,4\rangle) =
+We follow the theoretical framework of documents and spans introduced
+in~\cite{FaginKRV15}. For us, a document $d$ is simply a string over some finite
+alphabet (e.g. the ASCII charset, UTF-8, or a similar encoding
+scheme)\footnote{Note that a multi-line document is simply a single string.}. We
+write $d = a_0a_1 \ldots a_{n-1}$ to denote a document of length $|d| = n$ where
+$a_{i}$ is the $i$-symbol (note that the first symbol starts from
+$0$)\footnote{In \cite{FaginKRV15}, the first position is $1$. We use $0$ to be
+compliant with programming languages and RegEx engines which use $0$ as the
+start position.}. An example of a document is given in Figure~\ref{fig-doc}. A
+\emph{span} of a document $d$ (also called a \emph{match}) is a pair $s =
+[i,j\rangle$ of natural numbers $i$ and $j$ with $0 \leq i \leq j\leq |d|$. In
+that case, $s$ is associated with the continuous region of the document~$d$
+whose content is the substring of $d$ from position $i$ to position $j-1$. We
+denote this substring by $d(s)$ or $d(i,j)$. For instance, $d_1([0,4\rangle) =
 \texttt{that}$, since this is the content of the string $d$ in positions 0
 through~3.
 %
@@ -26,10 +36,10 @@ j_2\rangle$. The set of all spans of $d$ is denoted by $\sub(d)$.
 
 
 \section{Syntax} 
-Syntactically, REQL is similar to standard regular expressions,
-apart from a special construct \texttt{!x\{e\}}, which states that a
-substring matching \texttt{e} should be stored into the variable name \texttt{x}.
-Formally, the syntax of REQL queries can be defined as follows:
+Syntactically, REQL is similar to standard regular expressions, apart from a
+special construct \texttt{!x\{e\}}, which states that a substring matching
+\texttt{e} should be stored into the variable name \texttt{x}. Formally, the
+syntax of REQL queries can be defined as follows:
 $$
 \begin{array}{rcl}
 \texttt{e} & \coloneqq & \texttt{a} \ \mid \ \texttt{.} \ \mid \
@@ -40,23 +50,26 @@ $$
 \texttt{e|e} \ \mid \ \texttt{e*} \ \mid \ \texttt{e+} \ \mid \ \texttt{e?} \ \mid \ \texttt{e\{n,m\}}
 \end{array}
 $$
-Here, $\texttt{a}$ is a character (e.g., ASCII charset or UTF-8), the dot symbol is a wildcard for any character, and $\texttt{[w]}$
-or $\texttt{[\textasciicircum w]}$ are a char class or the negation of a char
-class, respectively, where $\texttt{w}$ declares a set of characters. We use the standard notation of
-ranges of ASCII characters found in POSIX for declaring char classes (e.g.
-$\texttt{[a-z]}$, $\texttt{[A-Z0-9apt]}$, etc) and write
+Here, $\texttt{a}$ is a character (e.g., ASCII charset or UTF-8), the dot symbol
+is a wildcard for any character, and $\texttt{[w]}$ or
+$\texttt{[\textasciicircum w]}$ are a char class or the negation of a char
+class, respectively, where $\texttt{w}$ declares a set of characters. We use the
+standard notation of ranges of ASCII characters found in POSIX for declaring
+char classes (e.g. $\texttt{[a-z]}$, $\texttt{[A-Z0-9apt]}$, etc) and write
 $\text{set}(\texttt{w})$ to denote the set of characters represented by
-$\texttt{w}$ (e.g. $\text{set}(\texttt{a-z}) = \{a, b, ..., z\}$). 
-Moreover, $\texttt{x}$ is a
-variable name where the character \texttt{!} is used to differentiate a variable
-name from a letter or string of the alphabet. This, along with the use of~\texttt{\{} and~\texttt{\}} for delimiting the captured subregex is the only special notation where we differ
-from POSIX. Finally,
+$\texttt{w}$ (e.g. $\text{set}(\texttt{a-z}) = \{a, b, ..., z\}$). Moreover,
+$\texttt{x}$ is a variable name where the character \texttt{!} is used to
+differentiate a variable name from a letter or string of the alphabet. This,
+along with the use of~\texttt{\{} and~\texttt{\}} for delimiting the captured
+subregex is the only special notation where we differ from POSIX. Finally,
 $\texttt{n}$ and $\texttt{m}$ are numbers such that $0 \leq \texttt{n} \leq
-\texttt{m}$.
-In the REmatch system, REQL also allow the usual regex abbreviations for character
-classes (e.g. \texttt{$\backslash$d} for a digit, or \texttt{$\backslash$w} for
-a word, etc), however, we do not include them in the formal definition in order to keep
-the presentation concise\footnote{We remark that the start-of-file symbol ($\texttt{\textasciicircum}$) and end-of-file symbol ($\texttt{\$}$) are currently not supported in \rematch. However, adding them is a straightforward exercise.}.
+\texttt{m}$. In the REmatch system, REQL also allow the usual regex
+abbreviations for character classes (e.g. \texttt{$\backslash$d} for a digit, or
+\texttt{$\backslash$w} for a word, etc), however, we do not include them in the
+formal definition in order to keep the presentation concise\footnote{We remark
+that the start-of-file symbol ($\texttt{\textasciicircum}$) and end-of-file
+symbol ($\texttt{\$}$) are currently not supported in \rematch. However, adding
+them is a straightforward exercise.}.
 
 
 \begin{figure}
@@ -64,20 +77,13 @@ the presentation concise\footnote{We remark that the start-of-file symbol ($\tex
 	\begin{center}
 		%\hspace*{-0.7cm}
 		\resizebox{.4\linewidth}{!}{
-			\begin{tikzpicture}[baseline=0ex, node distance=1.5cm,
-				every text node part/.style={align=center}]
-				\spanNode{0}{t}
-				\spanNodeP{0}{1}{h}
-				\spanNodeP{1}{2}{a}
-				\spanNodeP{2}{3}{t}
-				\spanNodeP{3}{4}{h}
-				\spanNodeP{4}{5}{a}
-				\spanNodeP{5}{6}{t}
-				\spanNodeP{6}{7}{h}
-				\spanNodeP{7}{8}{a}
-				\spanNodeP{8}{9}{t}
-				\draw ($(l0) + (-0.1, -0.2)$) to ($(l9) + (0.1, -0.2)$);
-				\node at ($(l0) + (-0.6, 0.05)$) {$d_1 :=\ $};
+			\begin{tikzpicture}[baseline=0ex, node distance=1.5cm, every text
+				node part/.style={align=center}] \spanNode{0}{t}
+				\spanNodeP{0}{1}{h} \spanNodeP{1}{2}{a} \spanNodeP{2}{3}{t}
+				\spanNodeP{3}{4}{h} \spanNodeP{4}{5}{a} \spanNodeP{5}{6}{t}
+				\spanNodeP{6}{7}{h} \spanNodeP{7}{8}{a} \spanNodeP{8}{9}{t}
+				\draw ($(l0) + (-0.1, -0.2)$) to ($(l9) + (0.1, -0.2)$); \node
+				at ($(l0) + (-0.6, 0.05)$) {$d_1 :=\ $};
 			\end{tikzpicture}
 		}
 	\end{center}
@@ -88,15 +94,15 @@ the presentation concise\footnote{We remark that the start-of-file symbol ($\tex
 
 
 
-\begin{example}\label{example:basic}
-To give a preliminary example of how REQL works, assume that we would like to
-extract all the occurrences of the word ``that" from a text document. This can be done in REQL as follows:
+\begin{example}\label{example:basic} To give a preliminary example of how REQL
+works, assume that we would like to extract all the occurrences of the word
+``that" from a text document. This can be done in REQL as follows:
 $$
 \texttt{e0} := \texttt{\textbf{!x\{}that\textbf{\}}}
 $$
-Intuitively, the query captures the positions of a substring \texttt{that}
-into the variable $x$. This query also illustrates a key feature of
-our semantics (defined below): there can be overlapping matches. To make this more clear,
+Intuitively, the query captures the positions of a substring \texttt{that} into
+the variable $x$. This query also illustrates a key feature of our semantics
+(defined below): there can be overlapping matches. To make this more clear,
 consider the document $d_1$ in Figure \ref{fig-doc}. The query above will result
 in precisely three matches for the variable \texttt{x}, corresponding to the
 three occurrences of the substring \texttt{that} in the document we are
@@ -106,27 +112,41 @@ match $[3,7\rangle$ will not be captured by most regular expression tools,
 unless some sort of a look-around operator is used.
 \end{example}
 
-The reader could notice that the above syntax is so general that one can define the capture of the same variable multiple times. For instance, a query like $\texttt{!x\{a!x\{b\}\}}$ defines the capture of $\texttt{x}$ twice. For this reason, REQL has some simple syntactic restrictions to use variables correctly. Let $\Var(\texttt{e})$ be the set of all variables names used in $\texttt{e}$. We say that a REQL query is \emph{well-designed}\footnote{In~\cite{FaginKRV15}, expressions satisfying these conditions are called \emph{functional}.} if every subquery~$\texttt{e}$ satisfies the following four conditions: (1)~if $\texttt{e}=\texttt{!x\{e1\}}$, then $\texttt{x} \notin \Var(\texttt{e1})$, (2)~if $\texttt{e} = \texttt{e1}\,\texttt{e2}$, then
-$\Var(\texttt{e1})\cap\Var(\texttt{e2}) = \emptyset$; (3)~if $\texttt{e} = \texttt{e1}|\texttt{e2}$, then
-$\Var(\texttt{e1})=\Var(\texttt{e2})$; and (4)~if $\texttt{e}$ is equal to 
-\texttt{e1*}, \texttt{e1+}, \texttt{e1?} or \texttt{e1\{n,m\}}, then
-$\Var(\texttt{e1}) = \emptyset$. 
-One can easily check that queries $\texttt{!x\{a!x\{b\}\}}$, $\texttt{!x\{a\}!x\{b\}}$, $\texttt{a|!x\{b\}}$, or $\texttt{(!x\{a\}b)*}$ are not well-designed. Instead, queries like $\texttt{!x\{a\}!y\{b\}}$, $\texttt{!x\{a\}|!x\{b\}}$, or $\texttt{!x\{a\}(b)*}$ do satisfy all conditions and then are well-designed.
-Note that, as shown in~\cite{FaginKRV15}, the well-designed condition does not diminish the query language's expressive power. Then from now on, we will consider all the queries we evaluate to be well-designed.
+The reader could notice that the above syntax is so general that one can define
+the capture of the same variable multiple times. For instance, a query like
+$\texttt{!x\{a!x\{b\}\}}$ defines the capture of $\texttt{x}$ twice. For this
+reason, REQL has some simple syntactic restrictions to use variables correctly.
+Let $\Var(\texttt{e})$ be the set of all variables names used in $\texttt{e}$.
+We say that a REQL query is \emph{well-designed}\footnote{In~\cite{FaginKRV15},
+expressions satisfying these conditions are called \emph{functional}.} if every
+subquery~$\texttt{e}$ satisfies the following four conditions: (1)~if
+$\texttt{e}=\texttt{!x\{e1\}}$, then $\texttt{x} \notin \Var(\texttt{e1})$,
+(2)~if $\texttt{e} = \texttt{e1}\,\texttt{e2}$, then
+$\Var(\texttt{e1})\cap\Var(\texttt{e2}) = \emptyset$; (3)~if $\texttt{e} =
+\texttt{e1}|\texttt{e2}$, then $\Var(\texttt{e1})=\Var(\texttt{e2})$; and (4)~if
+$\texttt{e}$ is equal to \texttt{e1*}, \texttt{e1+}, \texttt{e1?} or
+\texttt{e1\{n,m\}}, then $\Var(\texttt{e1}) = \emptyset$. One can easily check
+that queries $\texttt{!x\{a!x\{b\}\}}$, $\texttt{!x\{a\}!x\{b\}}$,
+$\texttt{a|!x\{b\}}$, or $\texttt{(!x\{a\}b)*}$ are not well-designed. Instead,
+queries like $\texttt{!x\{a\}!y\{b\}}$, $\texttt{!x\{a\}|!x\{b\}}$, or
+$\texttt{!x\{a\}(b)*}$ do satisfy all conditions and then are well-designed.
+Note that, as shown in~\cite{FaginKRV15}, the well-designed condition does not
+diminish the query language's expressive power. Then from now on, we will
+consider all the queries we evaluate to be well-designed.
 
 \section{Semantics} 
-We define the matches extracted by REQL in terms of mappings. 
-Formally, a \emph{mapping} for a document $d$ is a (partial) function $\mu$ from
-variables to spans of~$d$. Intuitively, a mapping
-represents a single match that a REQL query makes on a document $d$. For
-instance, in our previous example, the query $\texttt{e0}$ will produce three
-mappings as its output: $\mu_1$, with $\mu_1(x) = [0,4\rangle$, $\mu_2$, with
-$\mu_2(x) = [3,7\rangle$, and $\mu_3$, with $\mu_3(x) = [6,10\rangle$. We write
-$\dom(\mu)$ to denote the domain of $\mu$ and $\mu_1 \cup \mu_2$ for the
-disjoint union of mappings whenever $\dom(\mu_1) \cap \dom(\mu_2) = \emptyset$.
-We also use the notation $[x \to s]$ to define the singleton mapping that only
-maps $x$ to the span $s$ (e.g., $\mu_1 = [x \to [0,4\rangle]$), and use $\emptyset$
-for the trivial empty mapping (where the domain is the empty set). 
+We define the matches extracted by REQL in terms of mappings. Formally, a
+\emph{mapping} for a document $d$ is a (partial) function $\mu$ from variables
+to spans of~$d$. Intuitively, a mapping represents a single match that a REQL
+query makes on a document $d$. For instance, in our previous example, the query
+$\texttt{e0}$ will produce three mappings as its output: $\mu_1$, with $\mu_1(x)
+= [0,4\rangle$, $\mu_2$, with $\mu_2(x) = [3,7\rangle$, and $\mu_3$, with
+$\mu_3(x) = [6,10\rangle$. We write $\dom(\mu)$ to denote the domain of $\mu$
+and $\mu_1 \cup \mu_2$ for the disjoint union of mappings whenever $\dom(\mu_1)
+\cap \dom(\mu_2) = \emptyset$. We also use the notation $[x \to s]$ to define
+the singleton mapping that only maps $x$ to the span $s$ (e.g., $\mu_1 = [x \to
+[0,4\rangle]$), and use $\emptyset$ for the trivial empty mapping (where the
+domain is the empty set). 
 
 \begin{table}
 	\begin{align*}
@@ -157,83 +177,102 @@ for the trivial empty mapping (where the domain is the empty set).
 	\vspace{-5mm}
 \end{table}
 
-With the formalism
-of mappings, we can give a concise declarative semantics for REQL,
-similarly as in \cite{MaturanaRV17}. This is done in Table~\ref{tab-semantics}.
-The semantics is defined by structural induction on $\texttt{e}$ and has two
-layers. The first layer, $\sempd{\texttt{e}}$, defines the set of all
-pairs $(s,\mu)$ with $s \in \sub(d)$ and $\mu$ a mapping such that (1)
-$\texttt{e}$ successfully matches the substring $d(s)$ and (2) $\mu$
-results as a consequence of this successful match. For example, the
-REQL query $a$ matches all substrings of input document
-$d$ equal to $a$, but results in only the empty mapping. On the other
-hand, $\texttt{!x\{e\}}$ matches all substrings that are matched by
-$\texttt{e}$, but assigns to $x$ the \emph{non-empty} span $s$ that delimits the substring being
-matched, while preserving the previous variable
-assignments. Similarly, in the case of concatenation $\texttt{e1}\,\texttt{e2}$ we
-join the mapping defined on the left with the one defined on the
-right. Notice that these mappings will not share any variables, given that the expression is assumed to be well-formed.
-The second layer,
-$\semd{\texttt{e}}$, then simply gives us the mappings that $\texttt{e}$
-defines when matching the entire document. Note that when $\texttt{e}$ is
-an ordinary regular expression (i.e., no variables), then the empty mapping is output if the entire document matches $\texttt{e}$, and
-no mapping is output otherwise. 
+With the formalism of mappings, we can give a concise declarative semantics for
+REQL, similarly as in \cite{MaturanaRV17}. This is done in
+Table~\ref{tab-semantics}. The semantics is defined by structural induction on
+$\texttt{e}$ and has two layers. The first layer, $\sempd{\texttt{e}}$, defines
+the set of all pairs $(s,\mu)$ with $s \in \sub(d)$ and $\mu$ a mapping such
+that (1) $\texttt{e}$ successfully matches the substring $d(s)$ and (2) $\mu$
+results as a consequence of this successful match. For example, the REQL query
+$a$ matches all substrings of input document $d$ equal to $a$, but results in
+only the empty mapping. On the other hand, $\texttt{!x\{e\}}$ matches all
+substrings that are matched by $\texttt{e}$, but assigns to $x$ the
+\emph{non-empty} span $s$ that delimits the substring being matched, while
+preserving the previous variable assignments. Similarly, in the case of
+concatenation $\texttt{e1}\,\texttt{e2}$ we join the mapping defined on the left
+with the one defined on the right. Notice that these mappings will not share any
+variables, given that the expression is assumed to be well-formed. The second
+layer, $\semd{\texttt{e}}$, then simply gives us the mappings that $\texttt{e}$
+defines when matching the entire document. Note that when $\texttt{e}$ is an
+ordinary regular expression (i.e., no variables), then the empty mapping is
+output if the entire document matches $\texttt{e}$, and no mapping is output
+otherwise. 
 
-In the following, we provide several examples from English text analysis to grasp the power of REQL for information extraction and to see its differences concerning classical RegEx. The reader can test these examples and other REQL queries in our \rematch{} beta demo available on \url{www.rematch.cl}.
-\begin{example}\label{example:ex1}
-A typical task in language analysis is detecting words with particular roots, or more precisely lexemes, which are basic units of meaning. For example, one could be interested in words in the English language that start with the prefix `a'. To extract all such words from a text, we can simply use the following REQL expression:
+In the following, we provide several examples from English text analysis to
+grasp the power of REQL for information extraction and to see its differences
+concerning classical RegEx. The reader can test these examples and other REQL
+queries in our \rematch{} beta demo available on \url{www.rematch.cl}.
+\begin{example}\label{example:ex1} A typical task in language analysis is
+detecting words with particular roots, or more precisely lexemes, which are
+basic units of meaning. For example, one could be interested in words in the
+English language that start with the prefix `a'. To extract all such words from
+a text, we can simply use the following REQL expression:
 $$
 \texttt{e1} = \Vtextvisiblespace \texttt{!word\{[Aa]}\backslash \texttt{w+\}[}\Vtextvisiblespace \texttt{.]}
 $$
 \noindent
-where $\Vtextvisiblespace$ denotes a single white space, and $\backslash$\texttt{w} denotes the char class of words characters, as commonly used is Perl-compatible regular expressions. Note that in $\texttt{[}\Vtextvisiblespace \texttt{.]}$ the \texttt{.} denotes the dot symbol and not a wildcard. This is consistent with the classic RegEx syntax, since a wildcard symbol is useless for defining a char class.
+where $\Vtextvisiblespace$ denotes a single white space, and
+$\backslash$\texttt{w} denotes the char class of words characters, as commonly
+used is Perl-compatible regular expressions. Note that in
+$\texttt{[}\Vtextvisiblespace \texttt{.]}$ the \texttt{.} denotes the dot symbol
+and not a wildcard. This is consistent with the classic RegEx syntax, since a
+wildcard symbol is useless for defining a char class.
 
-In \texttt{e1} we are looking for a word staring with the letter 'a'. To assure we will capture the entire word, we preceded it by a space, and we require that after reading it we see either a space or a dot symbol\footnote{This example is for illustration purposes. The actual expression would allow arbitrary spacing and sentence punctuation, and allow matching the first word in the sentence.}. If we evaluate $\texttt{e1}$ over document $d_2$ in Figure~\ref{fig-doc2}, we will get four mappings assigning the variable \texttt{word} to the spans $\Span{4}{7}$, $\Span{11}{13}$, $\Span{14}{21}$, and $\Span{22}{31}$, representing the words ``ant'', ``an'', ``amazing'', and ``architect'', respectively.
+In \texttt{e1} we are looking for a word staring with the letter 'a'. To assure
+we will capture the entire word, we preceded it by a space, and we require that
+after reading it we see either a space or a dot symbol\footnote{This example is
+for illustration purposes. The actual expression would allow arbitrary spacing
+and sentence punctuation, and allow matching the first word in the sentence.}.
+If we evaluate $\texttt{e1}$ over document $d_2$ in Figure~\ref{fig-doc2}, we
+will get four mappings assigning the variable \texttt{word} to the spans
+$\Span{4}{7}$, $\Span{11}{13}$, $\Span{14}{21}$, and $\Span{22}{31}$,
+representing the words ``ant'', ``an'', ``amazing'', and ``architect'',
+respectively.
 \end{example}
-In classical RegEx, round parentheses denote a capture group for extracting a substring. That is,  \texttt{(R)} will extract what is matched by the RegEx \texttt{R}. We could therefore try to express \texttt{e1} from Example~\ref{example:ex1} by the expression: $\Vtextvisiblespace \texttt{([Aa]}\backslash \texttt{w+)[}\Vtextvisiblespace \texttt{.]}$ which replaces REQL's capture variables with a capture group. However, when evaluated over the document $d_2$ in Figure~\ref{fig-doc2}, one fewer output will be produced; namely: the span $\Span{14}{21}$ corresponding to the word ``amazing'' will be missing. This is due to leftmost-longest match semantics deployed by classic RegEx engines, which will consume the white space following the word ``an'', therefore preventing the expression from matching ``amazing''. A typical workaround for this problem is the use of \emph{look-ahead operators}, which allow to check whether a string is present starting from some position. A RegEx expression equivalent to \texttt{e1} would then be $\Vtextvisiblespace \texttt{([Aa]}\backslash \texttt{w+)(?=[}\Vtextvisiblespace \texttt{.])}$ which upon matching a word will look-ahead for a space or a dot, without advancing with the current match. 
-In general, using look-ahead operators is somewhat cumbersome, and, as we show below, is not sufficient to capture all the matches in some cases. In contrast, REQL supports the all-match semantics by default: it returns a match for \emph{every} span in the document where the specified pattern occurs.
+In classical RegEx, round parentheses denote a capture group for extracting a
+substring. That is,  \texttt{(R)} will extract what is matched by the RegEx
+\texttt{R}. We could therefore try to express \texttt{e1} from
+Example~\ref{example:ex1} by the expression: $\Vtextvisiblespace
+\texttt{([Aa]}\backslash \texttt{w+)[}\Vtextvisiblespace \texttt{.]}$ which
+replaces REQL's capture variables with a capture group. However, when evaluated
+over the document $d_2$ in Figure~\ref{fig-doc2}, one fewer output will be
+produced; namely: the span $\Span{14}{21}$ corresponding to the word ``amazing''
+will be missing. This is due to leftmost-longest match semantics deployed by
+classic RegEx engines, which will consume the white space following the word
+``an'', therefore preventing the expression from matching ``amazing''. A typical
+workaround for this problem is the use of \emph{look-ahead operators}, which
+allow to check whether a string is present starting from some position. A RegEx
+expression equivalent to \texttt{e1} would then be $\Vtextvisiblespace
+\texttt{([Aa]}\backslash \texttt{w+)(?=[}\Vtextvisiblespace \texttt{.])}$ which
+upon matching a word will look-ahead for a space or a dot, without advancing
+with the current match. In general, using look-ahead operators is somewhat
+cumbersome, and, as we show below, is not sufficient to capture all the matches
+in some cases. In contrast, REQL supports the all-match semantics by default: it
+returns a match for \emph{every} span in the document where the specified
+pattern occurs.
 
 
 \begin{figure}
 	\begin{center}
 	\resizebox{\linewidth}{!}{
-			\begin{tikzpicture}[baseline=0ex, node distance=.1cm,
-				every text node part/.style={align=center}]
-				\spanNode{0}{T}
-				\spanNodeP{0}{1}{h}
-				\spanNodeP{1}{2}{e}
-				\spanNodeP{2}{3}{ }
-				\spanNodeP{3}{4}{a}
-				\spanNodeP{4}{5}{n}
-				\spanNodeP{5}{6}{t}
-				\spanNodeP{6}{7}{ }
-				\spanNodeP{7}{8}{i}
-				\spanNodeP{8}{9}{s}
-				\spanNodeP{9}{10}{ }
-				\spanNodeP{10}{11}{a}
-				\spanNodeP{11}{12}{n}
-				\spanNodeP{12}{13}{ }
-				\spanNodeP{13}{14}{a}
-				\spanNodeP{14}{15}{m}
-				\spanNodeP{15}{16}{a}
-				\spanNodeP{16}{17}{z}
-				\spanNodeP{17}{18}{i}
-				\spanNodeP{18}{19}{n}
-				\spanNodeP{19}{20}{g}
-				\spanNodeP{20}{21}{ }
-				\spanNodeP{21}{22}{a}
-				\spanNodeP{22}{23}{r}
-				\spanNodeP{23}{24}{c}
-				\spanNodeP{24}{25}{h}
-				\spanNodeP{25}{26}{i}
-				\spanNodeP{26}{27}{t}
-				\spanNodeP{27}{28}{e}
-				\spanNodeP{28}{29}{c}
-				\spanNodeP{29}{30}{t}
-				\spanNodeP{30}{31}{.}
+			\begin{tikzpicture}[baseline=0ex, node distance=.1cm, every text
+				node part/.style={align=center}] \spanNode{0}{T}
+				\spanNodeP{0}{1}{h} \spanNodeP{1}{2}{e} \spanNodeP{2}{3}{ }
+				\spanNodeP{3}{4}{a} \spanNodeP{4}{5}{n} \spanNodeP{5}{6}{t}
+				\spanNodeP{6}{7}{ } \spanNodeP{7}{8}{i} \spanNodeP{8}{9}{s}
+				\spanNodeP{9}{10}{ } \spanNodeP{10}{11}{a} \spanNodeP{11}{12}{n}
+				\spanNodeP{12}{13}{ } \spanNodeP{13}{14}{a}
+				\spanNodeP{14}{15}{m} \spanNodeP{15}{16}{a}
+				\spanNodeP{16}{17}{z} \spanNodeP{17}{18}{i}
+				\spanNodeP{18}{19}{n} \spanNodeP{19}{20}{g} \spanNodeP{20}{21}{
+				} \spanNodeP{21}{22}{a} \spanNodeP{22}{23}{r}
+				\spanNodeP{23}{24}{c} \spanNodeP{24}{25}{h}
+				\spanNodeP{25}{26}{i} \spanNodeP{26}{27}{t}
+				\spanNodeP{27}{28}{e} \spanNodeP{28}{29}{c}
+				\spanNodeP{29}{30}{t} \spanNodeP{30}{31}{.}
 	
-				\draw ($(l0) + (-0.1, -0.2)$) to ($(l31) + (0.1, -0.2)$);
-				\node at ($(l0) + (-0.6, 0.05)$) {$d_2 :=\ $};
+				\draw ($(l0) + (-0.1, -0.2)$) to ($(l31) + (0.1, -0.2)$); \node
+				at ($(l0) + (-0.6, 0.05)$) {$d_2 :=\ $};
 				
 			\end{tikzpicture}
 		}
@@ -243,35 +282,91 @@ In general, using look-ahead operators is somewhat cumbersome, and, as we show b
 	\label{fig-doc2}
 \end{figure}
 
-\begin{example} \label{example:ex2}
-	Suppose that the user wants to process the English text into $k$-grams (i.e., $k$ consecutive words in a text) that satisfy some particular pattern. Specifically, suppose this user wants to extract all $2$-grams where each word begins with the letter `a'. We can extract them by running the following REQL query:
+\begin{example} \label{example:ex2} Suppose that the user wants to process the
+	English text into $k$-grams (i.e., $k$ consecutive words in a text) that
+	satisfy some particular pattern. Specifically, suppose this user wants to
+	extract all $2$-grams where each word begins with the letter `a'. We can
+	extract them by running the following REQL query:
 	$$
 	\texttt{e2} := \Vtextvisiblespace \texttt{\textbf{!w1\{}[Aa]}\backslash \texttt{w+\textbf{\}}}\Vtextvisiblespace \texttt{\textbf{!w2\{}[Aa]}\backslash \texttt{w+\textbf{\}}[}\Vtextvisiblespace \texttt{.]}
 	$$
-	Note that $\texttt{e2}$ is the extension of $\texttt{e1}$ where now we use two variable names, called $\texttt{w1}$ and $\texttt{w2}$, for obtaining the substrings of the first and second words, respectively. For instance, if we run $\texttt{e2}$ over $d_2$ in Figure~\ref{fig-doc2} we will get mappings:
+	Note that $\texttt{e2}$ is the extension of $\texttt{e1}$ where now we use
+	two variable names, called $\texttt{w1}$ and $\texttt{w2}$, for obtaining
+	the substrings of the first and second words, respectively. For instance, if
+	we run $\texttt{e2}$ over $d_2$ in Figure~\ref{fig-doc2} we will get
+	mappings:
 	$$
 	\begin{array}{cc}
 		[\texttt{w1} \mapsto \Span{11}{13}, \texttt{w2} \mapsto \Span{14}{21}] & 
 		{[}\texttt{w1} \mapsto \Span{14}{21}, \texttt{w2} \mapsto \Span{22}{31}] \vspace{1mm}\\
 	\end{array}
 	$$
-	representing the $2$-grams ``an amazing'' and ``amazing architect''.%, respectively.
+	representing the $2$-grams ``an amazing'' and ``amazing architect''.%,
+	respectively.
 \end{example}
-Note that the previous query cannot be obtained by any RegEx engine without ``look-arounds'', given that $2$-grams can overlap. %, as in the last example.
-\begin{example}\label{example:ex3}
-	We end by showing another capacity of REQL for extracting contextual information, another feature not supported by RegEx. Suppose that, in addition to the $2$-grams, the user wants to extract the sentence where the match happens. This additional information could be useful for understanding the context where these $2$-grams are used. For this, we can modify our query $\texttt{e2}$ as follows:
+Note that the previous query cannot be obtained by any RegEx engine without
+``look-arounds'', given that $2$-grams can overlap. %, as in the last example.
+\begin{example}\label{example:ex3} We end by showing another capacity of REQL
+	for extracting contextual information, another feature not supported by
+	RegEx. Suppose that, in addition to the $2$-grams, the user wants to extract
+	the sentence where the match happens. This additional information could be
+	useful for understanding the context where these $2$-grams are used. For
+	this, we can modify our query $\texttt{e2}$ as follows:
 $$
 \texttt{e3}  :=  \backslash \texttt{.}\texttt{\textbf{!sent\{}} \ \texttt{[\textasciicircum .]*} \Vtextvisiblespace \texttt{\textbf{!w1\{}[Aa]}\backslash \texttt{w+\textbf{\}}}\Vtextvisiblespace \texttt{\textbf{!w2\{}[Aa]}\backslash \texttt{w+\textbf{\}}}  \texttt{(}\Vtextvisiblespace\texttt{[\textasciicircum .]*)?}\backslash .  \ \texttt{\textbf{\}}}
 $$
-	Here, the new variable \texttt{sent} will store the information containing the sentence where the $2$-gram occurs. The reader can check that if we evaluate \texttt{e3} over $d_2$, then we will obtain the mappings of Example~\ref{example:ex2} where each mapping will have 
-	in addition the variable $\texttt{sent}$ maps to $\Span{0}{31}$, which represents the whole sentence. Interestingly, this semantics context of a match cannot be extracted by RegEx, even if we use look-ahead operators. The main issue for look-ahead operators is that due to the leftmost-longest semantics, no two matches starting at the same position can be returned, which is an issue in our case.
+	Here, the new variable \texttt{sent} will store the information containing
+	the sentence where the $2$-gram occurs. The reader can check that if we
+	evaluate \texttt{e3} over $d_2$, then we will obtain the mappings of
+	Example~\ref{example:ex2} where each mapping will have in addition the
+	variable $\texttt{sent}$ maps to $\Span{0}{31}$, which represents the whole
+	sentence. Interestingly, this semantics context of a match cannot be
+	extracted by RegEx, even if we use look-ahead operators. The main issue for
+	look-ahead operators is that due to the leftmost-longest semantics, no two
+	matches starting at the same position can be returned, which is an issue in
+	our case.
 \end{example}
 
 \section{Comparison with RegEx and Document Spanners} 
-As previously explained, we base REQL on RegEx syntax and the semantics of the Document Spanners framework. The purpose of reusing RegEx syntax is that users feel familiar with the query language and operators. However, as the previous examples show, the all-match semantics differs from the leftmost-longest semantics from classical RegEx. Therefore, we introduce REQL as a new query language rather than presenting it as an extension of RegEx. 
+As previously explained, we base REQL on RegEx syntax and the semantics of the
+Document Spanners framework. The purpose of reusing RegEx syntax is that users
+feel familiar with the query language and operators. However, as the previous
+examples show, the all-match semantics differs from the leftmost-longest
+semantics from classical RegEx. Therefore, we introduce REQL as a new query
+language rather than presenting it as an extension of RegEx. 
 
-The class of regular expressions with extraction variables was first introduced by Fagin et al.~\cite{FaginKRV15}. Their framework is called Document Spanners, and it formalizes the process of extracting relations from text documents. We base REQL semantics on Document Spanners, although there are several differences. First, while Document Spanners are a theoretical tool for information extraction, REQL is a user-oriented query language with a programming syntax based on RegEx. Second, the semantics proposed in Document Spanners is anchored at the beginning and end of the document (like regular expressions in theory), where REQL is unanchored; namely, the query is evaluated anywhere in the document (similar to RegEx engines). Third, REQL semantics disallows capturing $\epsilon$ substrings (see $\sempd{\texttt{!x\{e\}}}$ in Table~\ref{tab-semantics}), where Document Spanners allow this. %Although this difference is minimal, it implies that Document Spanners' language is slightly more expressive. 
-We decided to remove $\epsilon$-substring capturing since it is not very helpful for users, and its removal simplifies several optimization procedures in \rematch.
+The class of regular expressions with extraction variables was first introduced
+by Fagin et al.~\cite{FaginKRV15}. Their framework is called Document Spanners,
+and it formalizes the process of extracting relations from text documents. We
+base REQL semantics on Document Spanners, although there are several
+differences. First, while Document Spanners are a theoretical tool for
+information extraction, REQL is a user-oriented query language with a
+programming syntax based on RegEx. Second, the semantics proposed in Document
+Spanners is anchored at the beginning and end of the document (like regular
+expressions in theory), where REQL is unanchored; namely, the query is evaluated
+anywhere in the document (similar to RegEx engines). Third, REQL semantics
+disallows capturing $\epsilon$ substrings (see $\sempd{\texttt{!x\{e\}}}$ in
+Table~\ref{tab-semantics}), where Document Spanners allow this. %Although this
+difference is minimal, it implies that Document Spanners' language is slightly
+more expressive. 
+We decided to remove $\epsilon$-substring capturing since it is not very helpful
+for users, and its removal simplifies several optimization procedures in
+\rematch.
 
-Comparing \rematch\ with classical RegEx engines, they both use classical operators and shortcuts, and  match a substring from any position in the document, as opposed to the theoretical approaches to regular expressions. The main difference comes from capture variables and the all-match semantics. As we have seen, the combination of the two prevent simulating REQL's capture variables in RegEx using capture groups. Similarly, all-match semantics lies outside of the scope of RegEx, since matches starting at the same position cannot be simulated even using the look-around operators. As a minimal example for this, consider the document $d = \texttt{aaa}$, and the REQL expression $\texttt{e = !\{a*\}}$, which will produce six matches in this case, each one corresponding to a non-empty substring of~$d$. On the other hand, using look-ahead will not help us to capture this in RegEx. The most obvious way would be to use an expression of the form $\texttt{(?=(a*))}$, however, at position 0, only the match $[\texttt{w1} \mapsto \Span{0}{3}]$ will be produced, and, for example $[\texttt{w1} \mapsto \Span{0}{1}]$ will be omitted, since they both start at the same position.
+Comparing \rematch\ with classical RegEx engines, they both use classical
+operators and shortcuts, and  match a substring from any position in the
+document, as opposed to the theoretical approaches to regular expressions. The
+main difference comes from capture variables and the all-match semantics. As we
+have seen, the combination of the two prevent simulating REQL's capture
+variables in RegEx using capture groups. Similarly, all-match semantics lies
+outside of the scope of RegEx, since matches starting at the same position
+cannot be simulated even using the look-around operators. As a minimal example
+for this, consider the document $d = \texttt{aaa}$, and the REQL expression
+$\texttt{e = !\{a*\}}$, which will produce six matches in this case, each one
+corresponding to a non-empty substring of~$d$. On the other hand, using
+look-ahead will not help us to capture this in RegEx. The most obvious way would
+be to use an expression of the form $\texttt{(?=(a*))}$, however, at position 0,
+only the match $[\texttt{w1} \mapsto \Span{0}{3}]$ will be produced, and, for
+example $[\texttt{w1} \mapsto \Span{0}{1}]$ will be omitted, since they both
+start at the same position.
 

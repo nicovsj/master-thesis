@@ -1,230 +1,368 @@
-% !TeX spellcheck = en_US
-%!TEX root = ../Thesis.tex
+% !TeX spellcheck = en_US !TEX root = ../Thesis.tex
 
-To evaluate REQL, we compile logical VA into so-called \emph{extended VA}, a ``physical'' automata model closer to the evaluation algorithm than to the query language. We use this model for the REQL evaluation algorithm used in \rematch, which makes one pass over the document and produces the resulting mappings with output-linear delay. This evaluation algorithm refines and improves the theoretical algorithm presented in \cite{FlorenzanoRUVV20} for evaluating extended VA by taking care of the memory usage, simplifying the algorithm, and applying various optimizations presented in the previous sections.    
+To evaluate REQL, we compile logical VA into so-called \emph{extended VA}, a
+``physical'' automata model closer to the evaluation algorithm than to the query
+language. We use this model for the REQL evaluation algorithm used in \rematch,
+which makes one pass over the document and produces the resulting mappings with
+output-linear delay. This evaluation algorithm refines and improves the
+theoretical algorithm presented in \cite{FlorenzanoRUVV20} for evaluating
+extended VA by taking care of the memory usage, simplifying the algorithm, and
+applying various optimizations presented in the previous sections.    
 
 \section{Extended VA}
 
-An \emph{extended variable-set automaton} (\(\EVA\))~\cite{FaginKRV15} is a finite-state automaton extended with capture variables in a way analogous to logical VA. The difference is that reading and outputting variable markers can be done in a single transition\footnote{The name $\EVA$ is also used by~\cite{FlorenzanoRUVV20} for an automaton model outputting sets of markers. However, the eVA of~\cite{FlorenzanoRUVV20} require letter and variable transitions to be separate, while we process them simultaneously. We use the same name for consistency.}  
-%This extension will considerably simplify the algorithm and justify the use of a new model, more closed to the evaluation strategy than to the REQL query.
-Formally, an $\EVA$ $\cE$ is a tuple \((Q, q_0, F, \delta)\),
-where \(Q\) is a finite set of \textit{states}; $q_0 \in Q$ is the
-initial state; $F\subseteq Q$ is the set of final states; and $\delta$
-is a \textit{transition relation} consisting of transitions of the form $(q, a, S, q')$ where $q, q' \in Q$, $a \in \Sigma \cup \{\osymbol\}$, and $S$ is a set of variable markers (e.g., $S=\{\Open{x},\Close{y}\}$).
-The meaning behind the transition $(q, a, S, q')$ is that when the automaton is in the state $q$ and reads the $i$-th letter $a_i = a$, then it switches to state $q'$ and outputs $(S, i)$, where $S$ is the set of variables that are opened and closed \emph{before} reading the $i$-th letter.  In particular, when $S = \emptyset$, the automaton changes the state and nothing is output.
-%Note that the special symbol $\osymbol$ is used to simulate opening variables before reading the first letter of the document.
-%We define the set $\Var(\cE)$ as the set of
-%all variables $x$ that are mentioned in some transition of $\cE$.
+An \emph{extended variable-set automaton} (\(\EVA\))~\cite{FaginKRV15} is a
+finite-state automaton extended with capture variables in a way analogous to
+logical VA. The difference is that reading and outputting variable markers can
+be done in a single transition\footnote{The name $\EVA$ is also used
+by~\cite{FlorenzanoRUVV20} for an automaton model outputting sets of markers.
+However, the eVA of~\cite{FlorenzanoRUVV20} require letter and variable
+transitions to be separate, while we process them simultaneously. We use the
+same name for consistency.}  
+%This extension will considerably simplify the algorithm and justify the use of
+%a new model, more closed to the evaluation strategy than to the REQL query.
+Formally, an $\EVA$ $\cE$ is a tuple \((Q, q_0, F, \delta)\), where \(Q\) is a
+finite set of \textit{states}; $q_0 \in Q$ is the initial state; $F\subseteq Q$
+is the set of final states; and $\delta$ is a \textit{transition relation}
+consisting of transitions of the form $(q, a, S, q')$ where $q, q' \in Q$, $a
+\in \Sigma \cup \{\osymbol\}$, and $S$ is a set of variable markers (e.g.,
+$S=\{\Open{x},\Close{y}\}$). The meaning behind the transition $(q, a, S, q')$
+is that when the automaton is in the state $q$ and reads the $i$-th letter $a_i
+= a$, then it switches to state $q'$ and outputs $(S, i)$, where $S$ is the set
+of variables that are opened and closed \emph{before} reading the $i$-th letter.
+In particular, when $S = \emptyset$, the automaton changes the state and nothing
+is output.
+%Note that the special symbol $\osymbol$ is used to simulate opening variables
+%before reading the first letter of the document. We define the set $\Var(\cE)$
+%as the set of all variables $x$ that are mentioned in some transition of $\cE$.
 
-The fact that a transition can open or close multiple variables at the same time allows us to handle nested variables (e.g. \texttt{!x\{!y\{a\}\}}) in a single automaton transition. Furthermore, the $\osymbol$ symbol is used as a special input to denote the end of a document (i.e., an End Of File, or \texttt{EOF}). This will be useful in the run of an $\EVA$ for outputting spans $[i,
-	j\rangle$ over a document of size $n$, where $i$ and $j$ range from $0$ to $n$ (i.e., we need $n+1$ possible positions).
+The fact that a transition can open or close multiple variables at the same time
+	allows us to handle nested variables (e.g. \texttt{!x\{!y\{a\}\}}) in a
+	single automaton transition. Furthermore, the $\osymbol$ symbol is used as a
+	special input to denote the end of a document (i.e., an End Of File, or
+	\texttt{EOF}). This will be useful in the run of an $\EVA$ for outputting
+	spans $[i, j\rangle$ over a document of size $n$, where $i$ and $j$ range
+	from $0$ to $n$ (i.e., we need $n+1$ possible positions).
 
-Next we define how an $\EVA$ produces outputs.
-A \emph{run} $\rho$ of $\cE$ over a document $d = a_0 \cdots a_{n-1}$ is a sequence of the form:
+Next we define how an $\EVA$ produces outputs. A \emph{run} $\rho$ of $\cE$ over
+a document $d = a_0 \cdots a_{n-1}$ is a sequence of the form:
 \begin{equation}\label{eq:run}
 	\rho \ = \ q_0 \ \longtrans{b_0 / S_0} \ q_1 \ \longtrans{b_1 / S_1} \ q_2 \ \longtrans{b_2 / S_2} \ \ldots \ \ q_{n} \longtrans{b_{n} / S_n} \ q_{n+1}
 \end{equation}
-where $b_0 b_1 \ldots b_n = a_0 \ldots a_{n-1} \osymbol$, $S_j$ is a set of variable markers, and $(q_j,b_{j},S_{j}, q_{j+1}) \in \delta$, for $0\leq j\leq n$. Also, we say that $\rho$ is
-\emph{accepting} if $q_{n+1} \in F$. A run $\rho$ like (\ref{eq:run}) naturally defines an output sequence as $\oout(\rho) = \oout(S_0, 0) \cdot \ldots \cdot \oout(S_n, n)$ such that $\oout(S_i, i) = (S_i, i)$ if $S_i \neq \emptyset$, and $\epsilon$, otherwise. Finally, the semantics of $\cE$ over
-$d$, denoted by $\semseq{\cE}_d$, is defined as the set of all output sequences $\oout(\rho)$ where $\rho$ is an accepting run of $\cE$ over
-$d$.
+where $b_0 b_1 \ldots b_n = a_0 \ldots a_{n-1} \osymbol$, $S_j$ is a set of
+variable markers, and $(q_j,b_{j},S_{j}, q_{j+1}) \in \delta$, for $0\leq j\leq
+n$. Also, we say that $\rho$ is \emph{accepting} if $q_{n+1} \in F$. A run
+$\rho$ like (\ref{eq:run}) naturally defines an output sequence as $\oout(\rho)
+= \oout(S_0, 0) \cdot \ldots \cdot \oout(S_n, n)$ such that $\oout(S_i, i) =
+(S_i, i)$ if $S_i \neq \emptyset$, and $\epsilon$, otherwise. Finally, the
+semantics of $\cE$ over $d$, denoted by $\semseq{\cE}_d$, is defined as the set
+of all output sequences $\oout(\rho)$ where $\rho$ is an accepting run of $\cE$
+over $d$.
 
-$\EVA$ has several differences compared to logical VA: (1) an $\EVA$ starts from the beginning of the document, (2) produces output sequences instead of mappings, and (3) the transitions are fired by symbols (i.e., not by char classes). These relaxations plus read-captures transitions will considerably simplify the evaluation algorithm.  Indeed, we can show that if we start from a logical VA $\cA$, then we can construct an equivalent $\EVA$ $\cE$ in linear time. %, for evaluating $\cA$.
+$\EVA$ has several differences compared to logical VA: (1) an $\EVA$ starts from
+the beginning of the document, (2) produces output sequences instead of
+mappings, and (3) the transitions are fired by symbols (i.e., not by char
+classes). These relaxations plus read-captures transitions will considerably
+simplify the evaluation algorithm.  Indeed, we can show that if we start from a
+logical VA $\cA$, then we can construct an equivalent $\EVA$ $\cE$ in linear
+time. %, for evaluating $\cA$.
 \begin{proposition}\label{prop:eVAconstruction}
-%	For every logical VA $\cA$ compiled from a REQL query, one can build in linear time an $\EVA$ $\cE$ such that $\cE$ evaluated over a document $d$ produces the same output sequences of mappings from $\cA$ evaluated over $d$.
-	For every logical VA $\cA$ compiled from a REQL query \texttt{e}, one can build, in linear time, an $\EVA$ $\cE$ such that $\cE$ evaluated over a document $d$ produces precisely the output sequences representing the mappings in $\sem{\cA}_d = \sem{\texttt{e}}_d$.
+%	For every logical VA $\cA$ compiled from a REQL query, one can build in
+%	linear time an $\EVA$ $\cE$ such that $\cE$ evaluated over a document $d$
+%	produces the same output sequences of mappings from $\cA$ evaluated over
+%	$d$.
+	For every logical VA $\cA$ compiled from a REQL query \texttt{e}, one can
+	build, in linear time, an $\EVA$ $\cE$ such that $\cE$ evaluated over a
+	document $d$ produces precisely the output sequences representing the
+	mappings in $\sem{\cA}_d = \sem{\texttt{e}}_d$.
 \end{proposition}
 
-\begin{example}\label{ex:lva-eva}
-	To illustrate Proposition~\ref{prop:eVAconstruction}, recall query $\texttt{e0}$ and its equivalent logical VA $\cA_0$ from Example~\ref{example:logicalVA}. The following extended VA $\cE_0$ is equivalent to $\cA_0$:
-%	\begin{center}
-%		\begin{tikzpicture}[->,>=stealth, semithick, auto, initial text= {}, initial distance= {3mm}, accepting distance= {4mm}, node distance=1.13cm, semithick]
-%			\tikzstyle{every state}=[draw=black,text=black,inner sep=0pt, minimum size=4.3mm]
-%			\node[initial below,state] (0) {$0$};
-%			\node[state] (2) [right of=0] {$2$};
-%			\node[state] (3) [right of=2] {$3$};
-%			\node[state] (4) [right of=3] {$4$};
-%			\node[state] (6) [right of=4] {$6$};
-%			\node[state] (7) [right of=6] {$7$};
-%			\node[state] (8) [right of=7] {$8$};
-%			\node[state,accepting] (9) [right of=8] {$9¨$};
-%			
-%			\draw[->] (0) edge[loop above] node {$*/\emptyset$} (0);
-%			\draw[->] (0) edge node {$t/\Open{x}$} (2);
-%			\draw[->] (2) edge node {$h/\emptyset$} (3);
-%			\draw[->] (3) edge node {$* / \Close{x}$} (4);
-%			\draw[->] (4) edge[loop above] node {$*/\emptyset$} (4);
-%			\draw[->] (3) edge[bend right,swap] node {$h \, / \, \{\, \Close{x}, \Open{y}\, \}$} (6);
-%			\draw[->] (4) edge node {$h/\Open{y}$} (6);
-%			\draw[->] (6) edge node {$a/\emptyset$} (7);
-%			\draw[->] (7) edge node {$t/\emptyset$} (8);
-%			\draw[->] (8) edge node {$*/\Close{y}$} (9);	
-%			\draw[->] (9) edge[loop above] node {$*/\emptyset$} (9);
-%		\end{tikzpicture}
+\begin{example}\label{ex:lva-eva} To illustrate
+	Proposition~\ref{prop:eVAconstruction}, recall query $\texttt{e0}$ and its
+	equivalent logical VA $\cA_0$ from Example~\ref{example:logicalVA}. The
+	following extended VA $\cE_0$ is equivalent to $\cA_0$:
+%	\begin{center} \begin{tikzpicture}[->,>=stealth, semithick, auto, initial
+%	    text= {}, initial distance= {3mm}, accepting distance= {4mm}, node
+%	    distance=1.13cm, semithick] \tikzstyle{every
+%	    state}=[draw=black,text=black,inner sep=0pt, minimum size=4.3mm]
+%	    \node[initial below,state] (0) {$0$}; \node[state] (2) [right of=0]
+%	    {$2$}; \node[state] (3) [right of=2] {$3$}; \node[state] (4) [right
+%	    of=3] {$4$}; \node[state] (6) [right of=4] {$6$}; \node[state] (7)
+%	    [right of=6] {$7$}; \node[state] (8) [right of=7] {$8$};
+%	    \node[state,accepting] (9) [right of=8] {$9¨$};
+%
+%	        \draw[->] (0) edge[loop above] node {$*/\emptyset$} (0);
+%	        \draw[->] (0) edge node {$t/\Open{x}$} (2);
+%	        \draw[->] (2) edge node {$h/\emptyset$} (3);
+%	        \draw[->] (3) edge node {$* / \Close{x}$} (4);
+%	        \draw[->] (4) edge[loop above] node {$*/\emptyset$} (4);
+%	        \draw[->] (3) edge[bend right,swap] node {$h \, / \, \{\, \Close{x}, \Open{y}\, \}$} (6);
+%	        \draw[->] (4) edge node {$h/\Open{y}$} (6);
+%	        \draw[->] (6) edge node {$a/\emptyset$} (7);
+%	        \draw[->] (7) edge node {$t/\emptyset$} (8);
+%	        \draw[->] (8) edge node {$*/\Close{y}$} (9);    
+%	        \draw[->] (9) edge[loop above] node {$*/\emptyset$} (9);
+%	    \end{tikzpicture}
 %	\end{center}
 
 \begin{center}
 	\begin{tikzpicture}[->,>=stealth, semithick, auto, initial text= {}, initial distance= {3mm}, accepting distance= {4mm}, node distance=1.9cm, semithick]
-		\tikzstyle{every state}=[draw=black,text=black,inner sep=0pt, minimum size=7mm]
+		\tikzstyle{every state}=[draw=black,text=black,inner sep=0pt, minimum
+		size=7mm]
 		
 		\begin{scope}
-			\node[initial,state] (0) {$0$};
-			\node[state] (2) [right of=0] {$1$};
-			\node[state] (3) [right of=2] {$2$};
-			\node[state] (4) [right of=3] {$3$};
-			\node[state] (5) [right of=4] {$4$};
-			\node[state,accepting] (6) [right of=5] {$5$};
+			\node[initial,state] (0) {$0$}; \node[state] (2) [right of=0] {$1$};
+			\node[state] (3) [right of=2] {$2$}; \node[state] (4) [right of=3]
+			{$3$}; \node[state] (5) [right of=4] {$4$}; \node[state,accepting]
+			(6) [right of=5] {$5$};
 			
-			\draw[->] (0) edge[loop above] node {$*/\emptyset$} (0);
-			\draw[->] (0) edge node {$t/\{\Open{x}\}$} (2);
-			\draw[->] (2) edge node {$h/\emptyset$} (3);
-			\draw[->] (3) edge node {$a/\emptyset$} (4);
-			\draw[->] (4) edge node {$t/\emptyset$} (5);
-			\draw[->] (5) edge node {$*/\{\Close{x}\}$} (6);
-			\draw[->] (6) edge[loop above] node {$*/\emptyset$} (6);		
+			\draw[->] (0) edge[loop above] node {$*/\emptyset$} (0); \draw[->]
+			(0) edge node {$t/\{\Open{x}\}$} (2); \draw[->] (2) edge node
+			{$h/\emptyset$} (3); \draw[->] (3) edge node {$a/\emptyset$} (4);
+			\draw[->] (4) edge node {$t/\emptyset$} (5); \draw[->] (5) edge node
+			{$*/\{\Close{x}\}$} (6); \draw[->] (6) edge[loop above] node
+			{$*/\emptyset$} (6);		
 		\end{scope}
 	\end{tikzpicture}
 \end{center}
-Here we draw an edge $q \ \longtrans{a / S} \ q'$ to denote a transition from $q$ to~$q'$ that output $S$ when reading a letter $a$, and use $*$ to denote any letter. Intuitively, we have moved transitions with variable markers ``forward'' if we compare $\cE_0$ with $\cA_0$.  For instance, $\cA_0$ had transitions $0 \trans{\Open{x}} 1 \trans{t} 2$, but instead $\cE_0$ has a  direct transition $0 \longtrans{t/\Open{x}} 1$.  Since an extended VA needs to consume the entire document, we add self-loops in the initial and the final state; for instance $4 \longtrans{t/\Close{x}} 5$. Also note that the transition $0 \longtrans{*/\emptyset} 0$ closes the variable \texttt{x} before the character (\textsf{EOF} or any other character) is consumed.
+Here we draw an edge $q \ \longtrans{a / S} \ q'$ to denote a transition from
+$q$ to~$q'$ that output $S$ when reading a letter $a$, and use $*$ to denote any
+letter. Intuitively, we have moved transitions with variable markers ``forward''
+if we compare $\cE_0$ with $\cA_0$.  For instance, $\cA_0$ had transitions $0
+\trans{\Open{x}} 1 \trans{t} 2$, but instead $\cE_0$ has a  direct transition $0
+\longtrans{t/\Open{x}} 1$.  Since an extended VA needs to consume the entire
+document, we add self-loops in the initial and the final state; for instance $4
+\longtrans{t/\Close{x}} 5$. Also note that the transition $0
+\longtrans{*/\emptyset} 0$ closes the variable \texttt{x} before the character
+(\textsf{EOF} or any other character) is consumed.
 \end{example}
 
 \section{Determinization} 
-There is a critical issue with using $\EVA$ as our guide for evaluating REQL: several runs can produce the same output sequence. To illustrate this issue in its simplest form, assume the following extended VA $\cE_0'$, which is a mild modification of $\cE_0$:
+There is a critical issue with using $\EVA$ as our guide for evaluating REQL:
+several runs can produce the same output sequence. To illustrate this issue in
+its simplest form, assume the following extended VA $\cE_0'$, which is a mild
+modification of $\cE_0$:
 \begin{center}
 	\begin{tikzpicture}[->,>=stealth, semithick, auto, initial text= {}, initial distance= {3mm}, accepting distance= {4mm}, node distance=2.2cm, semithick]
-		\tikzstyle{every state}=[draw=black,text=black,inner sep=0pt, minimum size=7mm]
+		\tikzstyle{every state}=[draw=black,text=black,inner sep=0pt, minimum
+		size=7mm]
 		\begin{scope}
-			\node[initial,state] (0) {$0$};
-			\node[state] (2) [right of=0] {$1$};
-			\node[state] (3) [right of=2] {$2$};
-			\node[state] (4) at ($(3)+(1.7,0.6)$)  {$3$};
-			\node[state] (4') at ($(3)+(1.7,-0.6)$) {$3'$};
-			\node[state] (5) at ($(4)+(1.7,-0.6)$)  {$4$};
+			\node[initial,state] (0) {$0$}; \node[state] (2) [right of=0] {$1$};
+			\node[state] (3) [right of=2] {$2$}; \node[state] (4) at
+			($(3)+(1.7,0.6)$)  {$3$}; \node[state] (4') at ($(3)+(1.7,-0.6)$)
+			{$3'$}; \node[state] (5) at ($(4)+(1.7,-0.6)$)  {$4$};
 			\node[state,accepting] (6) [right of=5] {$5$};
 			
-			\draw[->] (0) edge[loop above] node {$*/\emptyset$} (0);
-			\draw[->] (0) edge node {$t/\{\Open{x}\}$} (2);
-			\draw[->] (2) edge node {$h/\emptyset$} (3);
-			\draw[->] (3) edge node[pos=0.7] {$a/\emptyset$} (4);
-			\draw[->] (4) edge node[pos=0.3] {$t/\emptyset$} (5);
-			\draw[->] (3) edge node[swap,pos=0.7] {$a/\emptyset$} (4');
-			\draw[->] (4') edge node[swap,pos=0.3] {$t/\emptyset$} (5);
-			\draw[->] (5) edge node {$*/\{\Close{x}\}$} (6);
-			\draw[->] (6) edge[loop above] node {$*/\emptyset$} (6);		
+			\draw[->] (0) edge[loop above] node {$*/\emptyset$} (0); \draw[->]
+			(0) edge node {$t/\{\Open{x}\}$} (2); \draw[->] (2) edge node
+			{$h/\emptyset$} (3); \draw[->] (3) edge node[pos=0.7]
+			{$a/\emptyset$} (4); \draw[->] (4) edge node[pos=0.3]
+			{$t/\emptyset$} (5); \draw[->] (3) edge node[swap,pos=0.7]
+			{$a/\emptyset$} (4'); \draw[->] (4') edge node[swap,pos=0.3]
+			{$t/\emptyset$} (5); \draw[->] (5) edge node {$*/\{\Close{x}\}$}
+			(6); \draw[->] (6) edge[loop above] node {$*/\emptyset$} (6);		
 		\end{scope}
 	\end{tikzpicture}
 \end{center}
-One can check that $\cE_0'$ is equivalent to $\cE_0$, namely, $\semseq{\cE_0'}(d) = \semseq{\cE_0}(d)$ for every document $d$. However, for every output sequence of $\semseq{\cE_0'}(d)$, two different runs are witnessing it: one crossing the state $3$ and another crossing the state $3'$. Then, if we guide an evaluation algorithm of eVA with runs, for $\cE_0'$ we will enumerate each output sequence twice, although the user expects to extract each output without duplicates. Similar behavior can happen for eVAs coming from REQL queries with quantifiers or alternations. 
+One can check that $\cE_0'$ is equivalent to $\cE_0$, namely,
+$\semseq{\cE_0'}(d) = \semseq{\cE_0}(d)$ for every document $d$. However, for
+every output sequence of $\semseq{\cE_0'}(d)$, two different runs are witnessing
+it: one crossing the state $3$ and another crossing the state $3'$. Then, if we
+guide an evaluation algorithm of eVA with runs, for $\cE_0'$ we will enumerate
+each output sequence twice, although the user expects to extract each output
+without duplicates. Similar behavior can happen for eVAs coming from REQL
+queries with quantifiers or alternations. 
 
-To remove duplicate runs from $\EVA$, we use a subclass called \emph{deterministic} $\EVA$. We say that an $\EVA$ $\cE$ is \emph{deterministic} if its transition relation $\delta$ satisfies that for every two transitions $(q, a_1, S_1, q_1') \in \delta$ and $(q, a_2, S_2, q_2') \in \delta$, if $(a_1, S_1) = (a_2, S_2)$, then $q_1' = q_2'$. In other words, given a state $q$, the next state is determined by the pair $(a, S)$. The reader can check that $\cE_0$ is deterministic but $\cE_0'$ is not. 
+To remove duplicate runs from $\EVA$, we use a subclass called
+\emph{deterministic} $\EVA$. We say that an $\EVA$ $\cE$ is \emph{deterministic}
+if its transition relation $\delta$ satisfies that for every two transitions
+$(q, a_1, S_1, q_1') \in \delta$ and $(q, a_2, S_2, q_2') \in \delta$, if $(a_1,
+S_1) = (a_2, S_2)$, then $q_1' = q_2'$. In other words, given a state $q$, the
+next state is determined by the pair $(a, S)$. The reader can check that $\cE_0$
+is deterministic but $\cE_0'$ is not. 
 
-A deterministic $\EVA$ ensures that for every document and output sequence, there is at most one accepting run. This correspondence is crucial for our evaluation algorithm, given that we can simulate runs and construct the output, without worrying about duplicates. Fortunately, we can always ``determinize'' a non-deterministic $\EVA$ $\cE = (Q, q_0, F, \delta)$ by using a subset construction, similar to the standard determinization procedure for NFAs. 
-More precisely, we define $\cE^{\odet} = (Q^{\odet}, q_0^{\odet}, F^{\odet}, \delta^{\odet})$ such that:
- $Q^{\odet} = 2^Q$, $q_0^{\odet} = \{q_0\}$, $F^{\odet} = \{X \mid X \cap F \neq \emptyset\}$, and:
+A deterministic $\EVA$ ensures that for every document and output sequence,
+there is at most one accepting run. This correspondence is crucial for our
+evaluation algorithm, given that we can simulate runs and construct the output,
+without worrying about duplicates. Fortunately, we can always ``determinize'' a
+non-deterministic $\EVA$ $\cE = (Q, q_0, F, \delta)$ by using a subset
+construction, similar to the standard determinization procedure for NFAs. More
+precisely, we define $\cE^{\odet} = (Q^{\odet}, q_0^{\odet}, F^{\odet},
+\delta^{\odet})$ such that: $Q^{\odet} = 2^Q$, $q_0^{\odet} = \{q_0\}$,
+$F^{\odet} = \{X \mid X \cap F \neq \emptyset\}$, and:
 $$
 	\delta^{\odet} = \{(X, a, S, X') \mid \forall q' \in X'. \, \exists q \in X. \, (q, a, S, q') \in \delta\}.
 $$
-%\begin{align*}
-%Q^{\odet} & = 2^Q \\
+%\begin{align*} Q^{\odet} & = 2^Q \\
 %q_0^{\odet} & = \{q_0\} \\
 %F^{\odet} & = \{X \mid X \cap F \neq \emptyset\}; \text{ and} \\
-%\delta^{\odet} & = \{(X, a, S, X') \mid \forall q' \in X'. \, \exists q \in X. \, (q, a, S, q') \in \delta\}.
-%\end{align*}
-%where $2^Q$ is the powerset of $Q$, namely, all subsets of $Q$.
-One can check that $\cE$ and $\cE^{\odet}$ are equivalent (i.e., they define the same output for every document), and that $\cE^{\odet}$ is deterministic.
+%\delta^{\odet} & = \{(X, a, S, X') \mid \forall q' \in X'. \, \exists q \in X.
+%\, (q, a, S, q') \in \delta\}. \end{align*} where $2^Q$ is the powerset of $Q$,
+%namely, all subsets of $Q$.
+One can check that $\cE$ and $\cE^{\odet}$ are equivalent (i.e., they define the
+same output for every document), and that $\cE^{\odet}$ is deterministic.
 
-An inconvenience of $\cE^{\odet}$ is that its size is exponential in $|\cE|$. Fortunately, for the evaluation algorithm it is not necessary to construct entire $\cE^{\odet}$. Instead, we can start from the initial set $\{q_0\}$ and traverse only the transitions and states needed by the next letter. Each time that we need a new state or transitions of $\cE^{\odet}$, we use $\cE$ to build them and cache it in main memory for future access. This is the purpose of the \emph{determinization module} of \rematch, called $\cdet$. Specifically, $\cdet$ has a method $\mdetnext$ such that, given a state $X \in Q^\odet$ and a letter $a$, $\cdet.\mdetnext(X, a)$ computes a list $\ell$ with all pairs $(S, X')$ such that $(X,a,S,X') \in \delta^\odet$. Instead, if $\ell$ was already computed before (and cached), $\cdet.\mdetnext(X, a)$ outputs $\ell$ immediately. Then by using $\cdet$ we only need to compute each state and transition once. Moreover, the number of states accessed by $\cdet$ depends on $\cE$ and the input document $d$. In practice, this size is small and at most three or four times the size of $\cE$.
+An inconvenience of $\cE^{\odet}$ is that its size is exponential in $|\cE|$.
+Fortunately, for the evaluation algorithm it is not necessary to construct
+entire $\cE^{\odet}$. Instead, we can start from the initial set $\{q_0\}$ and
+traverse only the transitions and states needed by the next letter. Each time
+that we need a new state or transitions of $\cE^{\odet}$, we use $\cE$ to build
+them and cache it in main memory for future access. This is the purpose of the
+\emph{determinization module} of \rematch, called $\cdet$. Specifically, $\cdet$
+has a method $\mdetnext$ such that, given a state $X \in Q^\odet$ and a letter
+$a$, $\cdet.\mdetnext(X, a)$ computes a list $\ell$ with all pairs $(S, X')$
+such that $(X,a,S,X') \in \delta^\odet$. Instead, if $\ell$ was already computed
+before (and cached), $\cdet.\mdetnext(X, a)$ outputs $\ell$ immediately. Then by
+using $\cdet$ we only need to compute each state and transition once. Moreover,
+the number of states accessed by $\cdet$ depends on $\cE$ and the input document
+$d$. In practice, this size is small and at most three or four times the size of
+$\cE$.
 
 \begin{algorithm*}
-	\caption{Evaluation of an extended variable-set automaton $\cE = (Q,\delta,q_0,F)$ over the document $b_0 \ldots b_{n}$ where $b_0 \ldots b_{n-1}$ is the original document and $b_n = \osymbol$ is an \texttt{EOF} symbol. $\cdet$ and $\ds$ are the determinization module and node manager, respectively.}\label{alg:evaluation}
+	\caption{Evaluation of an extended variable-set automaton $\cE =
+	(Q,\delta,q_0,F)$ over the document $b_0 \ldots b_{n}$ where $b_0 \ldots
+	b_{n-1}$ is the original document and $b_n = \osymbol$ is an \texttt{EOF}
+	symbol. $\cdet$ and $\ds$ are the determinization module and node manager,
+	respectively.}\label{alg:evaluation}
 	\smallskip
 	\begin{varwidth}[t]{0.5\textwidth}
 		\begin{algorithmic}[1]
-			\Procedure{Evaluate}{$\cE, b_0 \ldots b_{n}$}
-			\State $\cdet.\texttt{initialize}(\cE)$
-			\State $\textproc{InitializeLists}$
-			\For{$i=0$ \textbf{to} $n$}
-			\ForAll{$X \in \cstateslists$}
-			\State $\ell \gets \cdet.\texttt{next}(X,b_i)$
-			\If{$\ell \neq \texttt{empty}$}
-			\State $\textproc{UpdateSets}(X,\ell,i)$
-			\Else
-			\State $\ds.\texttt{garbage}(X.\coid)$
-			\EndIf
-			\EndFor
-			\State $\cstateslists.\texttt{swap}(\cstateslists')$
-			\State $\cstateslists'.\texttt{clear}$
-			\EndFor
-			\State $\textproc{Enumerate}$
-			\EndProcedure
-			\State
-			\State
-			\Procedure{Enumerate}{}
-			\ForAll{$X \in \cstateslists$}
-			\If{$X.\texttt{isFinal}$}
-			\State $\ds.\cenumerate(X.\coid)$
-			\EndIf
-			\EndFor
-			\EndProcedure
+			\Procedure{Evaluate}{$\cE, b_0 \ldots b_{n}$} \State
+			$\cdet.\texttt{initialize}(\cE)$ \State $\textproc{InitializeLists}$
+			\For{$i=0$ \textbf{to} $n$} \ForAll{$X \in \cstateslists$} \State
+			$\ell \gets \cdet.\texttt{next}(X,b_i)$ \If{$\ell \neq
+			\texttt{empty}$} \State $\textproc{UpdateSets}(X,\ell,i)$ \Else
+			\State $\ds.\texttt{garbage}(X.\coid)$ \EndIf \EndFor \State
+			$\cstateslists.\texttt{swap}(\cstateslists')$ \State
+			$\cstateslists'.\texttt{clear}$ \EndFor \State
+			$\textproc{Enumerate}$ \EndProcedure \State \State
+			\Procedure{Enumerate}{} \ForAll{$X \in \cstateslists$}
+			\If{$X.\texttt{isFinal}$} \State $\ds.\cenumerate(X.\coid)$ \EndIf
+			\EndFor \EndProcedure
 			\algstore{myalg}
 		\end{algorithmic}
 	\end{varwidth} \hfill
 	\begin{varwidth}[t]{0.5\textwidth}
 		\begin{algorithmic}[1]
 			\algrestore{myalg}
-			\Procedure{InitializeLists}{}
-			\State $\cstateslists.\texttt{clear}$
-			\State $\cstateslists'.\texttt{clear}$
-			\State $X_0 \gets \cdet.\texttt{initialStateSet}$
-			\State $X_0.\citer \gets -1$
-			\State $X_0.\coid \gets \ds.\cinit$
-			\State $\cstateslists.\texttt{add}(X_0)$
-			\EndProcedure
-			\State
-			\Procedure{UpdateSets}{$X,\ell,i$}
-			\ForAll{$(S,X') \in \ell$}
-			\State $\coid' \gets X.\coid$
-			\If{$S \neq \emptyset$}
-			\State $\coid' \gets \ds.\cextend(\coid', (S, i))$
-			\EndIf
-			\If{$X'.\citer < i$}
-			\State $X'.\citer \gets i$
-			\State $\cstateslists'.\texttt{add}(X')$
-			\State $X'.\coid \gets \coid'$
-			\Else
-			\State $X'.\coid \gets \ds.\cunion(X'.\coid, \coid')$
-			\EndIf
-			\EndFor
-			\EndProcedure
+			\Procedure{InitializeLists}{} \State $\cstateslists.\texttt{clear}$
+			\State $\cstateslists'.\texttt{clear}$ \State $X_0 \gets
+			\cdet.\texttt{initialStateSet}$ \State $X_0.\citer \gets -1$ \State
+			$X_0.\coid \gets \ds.\cinit$ \State
+			$\cstateslists.\texttt{add}(X_0)$ \EndProcedure \State
+			\Procedure{UpdateSets}{$X,\ell,i$} \ForAll{$(S,X') \in \ell$} \State
+			$\coid' \gets X.\coid$ \If{$S \neq \emptyset$} \State $\coid' \gets
+			\ds.\cextend(\coid', (S, i))$ \EndIf \If{$X'.\citer < i$} \State
+			$X'.\citer \gets i$ \State $\cstateslists'.\texttt{add}(X')$ \State
+			$X'.\coid \gets \coid'$ \Else \State $X'.\coid \gets
+			\ds.\cunion(X'.\coid, \coid')$ \EndIf \EndFor \EndProcedure
 		\end{algorithmic}
 	\end{varwidth}
 \end{algorithm*}
 
 \section{Algorithm's variables} 
-In Algorithm~\ref{alg:evaluation} we present the main algorithm for \rematch. This algorithm evaluates an $\EVA$ $\cE$ over the input document $d$, enumerating all output sequences $\semseq{\cE}(d)$. %Next, we introduce the variables and data structures used by the algorithm.
+In Algorithm~\ref{alg:evaluation} we present the main algorithm for \rematch.
+This algorithm evaluates an $\EVA$ $\cE$ over the input document $d$,
+enumerating all output sequences $\semseq{\cE}(d)$. %Next, we introduce the
+variables and data structures used by the algorithm.
 %
-Two main components used by the algorithm are the node manager $\ds$, introduced in Chapter~\ref{chpt:output}, and the determinization module $\cdet$, introduced above. In addition, we use \emph{states-sets} constructed by $\cdet$, \emph{set-lists} that store states-sets, and \emph{nodes} created and operated by $\ds$. We introduced nodes $\coid$ in Chapter~\ref{chpt:output}. %Next, we explain how states-sets and set-lists work.
+Two main components used by the algorithm are the node manager $\ds$, introduced
+in Chapter~\ref{chpt:output}, and the determinization module $\cdet$, introduced
+above. In addition, we use \emph{states-sets} constructed by $\cdet$,
+\emph{set-lists} that store states-sets, and \emph{nodes} created and operated
+by $\ds$. We introduced nodes $\coid$ in Chapter~\ref{chpt:output}. %Next, we
+explain how states-sets and set-lists work.
 
-The states-sets, denoted by $X$ in the algorithm, are built and cached by the determinization module for representing a set $X \subseteq Q$. Each states-set $X$ has two variables: $X.\coid$ and $X.\citer$. The former can store a node that represents the current outputs of runs that reached $X$. Instead, the latter is an integer that encodes the current phase number: if $X.\citer = i$ then the $i$-th iteration was the last one that reached $X$. In practice, $\citer$ will help to know whether it is the first time we reached $X$ during some iteration. Further, each states-set has a method $X.\texttt{isFinal}$ that outputs $\texttt{TRUE}$ if, and only if, $X$ is a final set (i.e., $X \cap F \neq \emptyset$). In the implementation, this is a flag that the determinization module sets when creating $X$.
+The states-sets, denoted by $X$ in the algorithm, are built and cached by the
+determinization module for representing a set $X \subseteq Q$. Each states-set
+$X$ has two variables: $X.\coid$ and $X.\citer$. The former can store a node
+that represents the current outputs of runs that reached $X$. Instead, the
+latter is an integer that encodes the current phase number: if $X.\citer = i$
+then the $i$-th iteration was the last one that reached $X$. In practice,
+$\citer$ will help to know whether it is the first time we reached $X$ during
+some iteration. Further, each states-set has a method $X.\texttt{isFinal}$ that
+outputs $\texttt{TRUE}$ if, and only if, $X$ is a final set (i.e., $X \cap F
+\neq \emptyset$). In the implementation, this is a flag that the determinization
+module sets when creating $X$.
 
-We will also use set-lists, denoted by $\cstateslists$ in the algorithm, which are linked-list of states-sets. For this data structure, we assume a method $\cstateslists.\texttt{clear}$ to empty the list, $\cstateslists.\texttt{add}(X)$ to add $X$ at the end, and $\cstateslists.\texttt{swap}(\cstateslists')$ to swap the content between two lists. To iterate over each element $X$ in the list, we conveniently write ``$\textbf{for all} \ X \in \cstateslists$''. We assume any straightforward implementation of set-list that takes constant time for each call to these methods. Finally, during the algorithm, we use two set-lists variables, $\cstateslists$, and $\cstateslists'$. We assume that $\cstateslists$, $\cstateslists'$, $\ds$, and $\cdet$ can be globally accessed by all methods.
+We will also use set-lists, denoted by $\cstateslists$ in the algorithm, which
+are linked-list of states-sets. For this data structure, we assume a method
+$\cstateslists.\texttt{clear}$ to empty the list,
+$\cstateslists.\texttt{add}(X)$ to add $X$ at the end, and
+$\cstateslists.\texttt{swap}(\cstateslists')$ to swap the content between two
+lists. To iterate over each element $X$ in the list, we conveniently write
+``$\textbf{for all} \ X \in \cstateslists$''. We assume any straightforward
+implementation of set-list that takes constant time for each call to these
+methods. Finally, during the algorithm, we use two set-lists variables,
+$\cstateslists$, and $\cstateslists'$. We assume that $\cstateslists$,
+$\cstateslists'$, $\ds$, and $\cdet$ can be globally accessed by all methods.
 
 \section{Main algorithm}
-The main method of Algorithm~\ref{alg:evaluation} is $\textproc{Evaluate}$, which receives as input an $\EVA$ $\cE = (Q,\delta,q_0,F)$ and the document $b_0 \ldots b_{n}$. Recall that $b_0 \ldots b_{n-1}$ is the original document and $b_n = \osymbol$ is the \texttt{EOF} symbol.
-The algorithm starts by initializing the determinization module $\cdet$ with $\cE$ at line~$2$. The \texttt{initialize} method is for storing $\cE$ inside $\cdet$ and using it later during the determinization.
-Then we do the initialization of $\cstateslists$ and $\cstateslists'$ by calling $\textproc{InitializeLists}$ (line 3). This method clears both lists (lines 15-16) and adds the state-set $X_0$ to $\cstateslists$ (line 20).
-This state-set represents $\{q_0\}$, namely, the determinization initial set. For this, $\cdet$ provides a method $\cdet.\texttt{initialStateSet}$ that outputs $X_0 = \{q_0\}$ (line 17). Then we initiate $X_0.\citer$ with $-1$ (line 18) and fill $X_0.\coid$ with the empty output node (line 19). Intuitively, no iterations have accessed $X_0$ yet, and the $\cE^{\odet}$-run at $X_0$ only has the empty output.
+The main method of Algorithm~\ref{alg:evaluation} is $\textproc{Evaluate}$,
+which receives as input an $\EVA$ $\cE = (Q,\delta,q_0,F)$ and the document $b_0
+\ldots b_{n}$. Recall that $b_0 \ldots b_{n-1}$ is the original document and
+$b_n = \osymbol$ is the \texttt{EOF} symbol. The algorithm starts by
+initializing the determinization module $\cdet$ with $\cE$ at line~$2$. The
+\texttt{initialize} method is for storing $\cE$ inside $\cdet$ and using it
+later during the determinization. Then we do the initialization of
+$\cstateslists$ and $\cstateslists'$ by calling $\textproc{InitializeLists}$
+(line 3). This method clears both lists (lines 15-16) and adds the state-set
+$X_0$ to $\cstateslists$ (line 20). This state-set represents $\{q_0\}$, namely,
+the determinization initial set. For this, $\cdet$ provides a method
+$\cdet.\texttt{initialStateSet}$ that outputs $X_0 = \{q_0\}$ (line 17). Then we
+initiate $X_0.\citer$ with $-1$ (line 18) and fill $X_0.\coid$ with the empty
+output node (line 19). Intuitively, no iterations have accessed $X_0$ yet, and
+the $\cE^{\odet}$-run at $X_0$ only has the empty output.
 
-The evaluation algorithm processes the document $b_0 \ldots b_{n}$ symbol by symbol, from $i=0$ to $n$ (line 4). During the $i$-th iteration, the $\cstateslists$ keeps all state-sets $X$ that can be reached by runs reading $b_0\ldots b_{i-1}$, and $X.\coid$ a node storing all outputs of these runs. Instead, $\cstateslists'$ will contain the new state-sets after reading the new letter $b_i$. Intuitively, to build $\cstateslists'$ from $\cstateslists$ we fire all state-sets $X$ in $\cstateslists$ one-by-one (line 5) by calling the method $\cdet.\texttt{next}(X,b_i)$ with symbol $b_i$ (line 6). As explained previously, this method gives a list $\ell$ of pairs $(S, X')$, where there is a transition $(X, b_i, S, X') \in \delta^{\odet}$. Then, if $(S, X') \in \ell$, we must extend the output sequences in $X.\coid$ with $(S, i)$, and store them in $X'$. We do this updating by calling the method $\textproc{UpdateSets}(X,\ell,i)$ (line 8), discussed below.
-If the list $\ell$ is empty (e.g., $\cdet$ detects that by reading $b_i$ from $X$, there is no way to continue), then we call the node manager $\ds$ and mark $X.\coid$ for the garbage collection (line 10). Notice that, by using the determinization manager, we can detect the right place to reuse memory in the algorithm.
-Finally, when we end firing all state-sets in $\cstateslists$, we swap the two lists and clean $\cstateslists'$ to start the iteration again (lines 11-12).
+The evaluation algorithm processes the document $b_0 \ldots b_{n}$ symbol by
+symbol, from $i=0$ to $n$ (line 4). During the $i$-th iteration, the
+$\cstateslists$ keeps all state-sets $X$ that can be reached by runs reading
+$b_0\ldots b_{i-1}$, and $X.\coid$ a node storing all outputs of these runs.
+Instead, $\cstateslists'$ will contain the new state-sets after reading the new
+letter $b_i$. Intuitively, to build $\cstateslists'$ from $\cstateslists$ we
+fire all state-sets $X$ in $\cstateslists$ one-by-one (line 5) by calling the
+method $\cdet.\texttt{next}(X,b_i)$ with symbol $b_i$ (line 6). As explained
+previously, this method gives a list $\ell$ of pairs $(S, X')$, where there is a
+transition $(X, b_i, S, X') \in \delta^{\odet}$. Then, if $(S, X') \in \ell$, we
+must extend the output sequences in $X.\coid$ with $(S, i)$, and store them in
+$X'$. We do this updating by calling the method
+$\textproc{UpdateSets}(X,\ell,i)$ (line 8), discussed below. If the list $\ell$
+is empty (e.g., $\cdet$ detects that by reading $b_i$ from $X$, there is no way
+to continue), then we call the node manager $\ds$ and mark $X.\coid$ for the
+garbage collection (line 10). Notice that, by using the determinization manager,
+we can detect the right place to reuse memory in the algorithm. Finally, when we
+end firing all state-sets in $\cstateslists$, we swap the two lists and clean
+$\cstateslists'$ to start the iteration again (lines 11-12).
 
 \section{Update method} 
-The workhorse of the evaluation algorithm is $\textproc{UpdateSets}(X, \ell,i)$, which is in charge of updating each state-set $X'$ by extending the outputs in $X.\coid$ with $(S,i)$, for each $(S, X') \in \!\ell$. For this purpose, we iterate over each $(S, X') \in \ell$, create a copy $\coid'$ of $X.\coid$, and extend all output sequences in $\coid'$ with $(S,i)$ if $S\neq \emptyset$ (lines 28-30). Next, we need to update $X'.\coid$ depending on whether it is the first time or not that we reach $X'$. For this, we use variable $X'.\citer$: if $X'.\citer < i$, then we update $X'.\citer$ to $i$, add $X'$ to $\cstateslists'$, and set $X'.\coid$ equal to $\coid'$ (lines 31-34). Otherwise, it is not the first time that we reach $X'$, and we need to union the output sequences in $X'.\coid$ with the ones in $\coid'$ (lines~35-36).
+The workhorse of the evaluation algorithm is $\textproc{UpdateSets}(X, \ell,i)$,
+which is in charge of updating each state-set $X'$ by extending the outputs in
+$X.\coid$ with $(S,i)$, for each $(S, X') \in \!\ell$. For this purpose, we
+iterate over each $(S, X') \in \ell$, create a copy $\coid'$ of $X.\coid$, and
+extend all output sequences in $\coid'$ with $(S,i)$ if $S\neq \emptyset$ (lines
+28-30). Next, we need to update $X'.\coid$ depending on whether it is the first
+time or not that we reach $X'$. For this, we use variable $X'.\citer$: if
+$X'.\citer < i$, then we update $X'.\citer$ to $i$, add $X'$ to
+$\cstateslists'$, and set $X'.\coid$ equal to $\coid'$ (lines 31-34). Otherwise,
+it is not the first time that we reach $X'$, and we need to union the output
+sequences in $X'.\coid$ with the ones in $\coid'$ (lines~35-36).
 
-For the correctness of $\textproc{UpdateSets}$, we cannot reach any state-set $X$ in two consecutive iterations (i.e., both in the $(i-1)$- and $i$-th iteration for some $i$). Otherwise, we could use $X.\coid$ by reading and updating it simultaneously, possibly erasing its content. For this reason, during the rewriting module we duplicate the logical $\VA$, alternating between even and odd positions. This construction forces that, at this stage, we cannot reach any state-set $X$ in two consecutive iterations as needed.
+For the correctness of $\textproc{UpdateSets}$, we cannot reach any state-set
+$X$ in two consecutive iterations (i.e., both in the $(i-1)$- and $i$-th
+iteration for some $i$). Otherwise, we could use $X.\coid$ by reading and
+updating it simultaneously, possibly erasing its content. For this reason,
+during the rewriting module we duplicate the logical $\VA$, alternating between
+even and odd positions. This construction forces that, at this stage, we cannot
+reach any state-set $X$ in two consecutive iterations as needed.
 
-$\textproc{UpdateSets}$ passes and updates the outputs from the $(i-1)$- to the $i$-th layer, which is the heaviest part of the algorithm. Therefore, it is crucial to perform $\textproc{UpdateSets}$ as efficiently as possible. For this, we use linked-lists and $\citer$ variables, which allows us to check in a single instruction whether $X'$ is already in $\cstateslists'$ or not. These tricks are standard in the implementation of RegEx engines~\cite{cox2007regular}. The novelty is then to incorporate these optimizations in a new evaluation algorithm for computing all matches.
+$\textproc{UpdateSets}$ passes and updates the outputs from the $(i-1)$- to the
+$i$-th layer, which is the heaviest part of the algorithm. Therefore, it is
+crucial to perform $\textproc{UpdateSets}$ as efficiently as possible. For this,
+we use linked-lists and $\citer$ variables, which allows us to check in a single
+instruction whether $X'$ is already in $\cstateslists'$ or not. These tricks are
+standard in the implementation of RegEx engines~\cite{cox2007regular}. The
+novelty is then to incorporate these optimizations in a new evaluation algorithm
+for computing all matches.
 
 \begin{figure}
 	\centering
@@ -234,16 +372,46 @@ $\textproc{UpdateSets}$ passes and updates the outputs from the $(i-1)$- to the 
 \end{figure}
 
 \begin{example}
-	Figure~\ref{fig:algo-run} displays a graphic of how Algorithm~\ref{alg:evaluation} would run with eVA $\cA_0$ from Example~\ref{ex:lva-eva} and document $d_0$.
-Below document $d_0$, we draw as columns the \cstateslistss{} that are computed after reading the corresponding symbol. For this example, each state-set is a single state, and then each number in a \cstateslists{} corresponds to a state in $\cA_0$. Below each state-set $X$, we draw in grey the node $X.\coid$ from the ECS that the algorithm construct. 
+	Figure~\ref{fig:algo-run} displays a graphic of how
+Algorithm~\ref{alg:evaluation} would run with eVA $\cA_0$ from
+Example~\ref{ex:lva-eva} and document $d_0$. Below document $d_0$, we draw as
+columns the \cstateslistss{} that are computed after reading the corresponding
+symbol. For this example, each state-set is a single state, and then each number
+in a \cstateslists{} corresponds to a state in $\cA_0$. Below each state-set
+$X$, we draw in grey the node $X.\coid$ from the ECS that the algorithm
+construct. 
 \end{example}
 
 \section{Next index (Optimization)} 
-A significant step for the evaluation algorithm is the call to the $\cdet.\texttt{next}$ function (line 6). Given a state-set $X$ and a symbol $b_i$, the first time that the algorithm calls $\cdet.\texttt{next}(X, b_i)$ the $\cdet$ module must compute a list with all pairs $(S, X')$ such that it holds that $(X,a,S,X') \in \delta^\odet$, and save it in its cache. Then, for later calls to  $\cdet.\texttt{next}(X, b_i)$, the $\cdet$ module must quickly find this list in the cache. The evaluation uses the $\cdet$'s cache multiple times, making it  one of the heaviest parts of the computation. To decrease the load of the algorithm, we add an index to each state set $X$, which quickly allows finding the next state-set given a $b_i$. Currently, \rematch\ only supports ASCII documents; therefore, we implement this index as an array with 128 entries. This array on each state-set allows us to quickly find the next state-set, considerably improving the performance of the evaluation algorithm. Here, for the next index, we are sacrificing space versus time. Of course, a more compact next index (e.g., for non-ASCII documents) could save space during the evaluation. We leave this for future work. 
+A significant step for the evaluation algorithm is the call to the
+$\cdet.\texttt{next}$ function (line 6). Given a state-set $X$ and a symbol
+$b_i$, the first time that the algorithm calls $\cdet.\texttt{next}(X, b_i)$ the
+$\cdet$ module must compute a list with all pairs $(S, X')$ such that it holds
+that $(X,a,S,X') \in \delta^\odet$, and save it in its cache. Then, for later
+calls to  $\cdet.\texttt{next}(X, b_i)$, the $\cdet$ module must quickly find
+this list in the cache. The evaluation uses the $\cdet$'s cache multiple times,
+making it  one of the heaviest parts of the computation. To decrease the load of
+the algorithm, we add an index to each state set $X$, which quickly allows
+finding the next state-set given a $b_i$. Currently, \rematch\ only supports
+ASCII documents; therefore, we implement this index as an array with 128
+entries. This array on each state-set allows us to quickly find the next
+state-set, considerably improving the performance of the evaluation algorithm.
+Here, for the next index, we are sacrificing space versus time. Of course, a
+more compact next index (e.g., for non-ASCII documents) could save space during
+the evaluation. We leave this for future work. 
 
 \section{Enumeration} 
-When we get to the end of the document, $\cstateslists$ contains all state-set $X$ that can be reached by runs of $\cE^\odet$ when reading $b_0 \ldots b_n$. In particular, $X.\coid$ has the node representing all outputs of these runs. Then we call $\textproc{Enumerate}$ (line 13), which iterates over all $X \in \cstateslists$ that are final, and enumerates the output sequences in $X.\coid$ by calling the enumerate method of the node manager (lines 23-25).
+When we get to the end of the document, $\cstateslists$ contains all state-set
+$X$ that can be reached by runs of $\cE^\odet$ when reading $b_0 \ldots b_n$. In
+particular, $X.\coid$ has the node representing all outputs of these runs. Then
+we call $\textproc{Enumerate}$ (line 13), which iterates over all $X \in
+\cstateslists$ that are final, and enumerates the output sequences in $X.\coid$
+by calling the enumerate method of the node manager (lines 23-25).
 %
-As described in Chapter~\ref{chpt:output}, we can perform an early output enumeration whenever we reach a final state at the $i$-th iteration. For ease of presentation, we code Algorithm~\ref{alg:evaluation} with the enumeration procedure after reading the whole document. %Instead, in REmatch's implementation, we call the enumeration method whenever we reach a final state.
+As described in Chapter~\ref{chpt:output}, we can perform an early output
+enumeration whenever we reach a final state at the $i$-th iteration. For ease of
+presentation, we code Algorithm~\ref{alg:evaluation} with the enumeration
+procedure after reading the whole document. %Instead, in REmatch's
+implementation, we call the enumeration method whenever we reach a final state.
 
 
