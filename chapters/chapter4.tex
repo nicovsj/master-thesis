@@ -1,12 +1,12 @@
 % !TeX spellcheck = en_US !TeX root = ../Thesis.tex
 
 The output of a REQL query $\texttt{e}$ over a document $d$ can be prohibitively
-large, namely, of size $\mathcal{O}(|d|^{2|e|})$, since for the all-match
-semantics we could even ask for all substrings being matched to all the
-variables. Since such queries are, at least in principle, expressible in REQL,
-we need to be able to handle them in \rematch. For this, we deploy the notion of
-enumeration algorithms and output delay, which measure the efficiency of an
-algorithm  %to process the input and deliver the output.
+large, namely, of size $\mathcal{O}(|d|^{2|\texttt{e}|})$, since for the
+all-match semantics we could even ask for all substrings being matched to all
+the variables. Since such queries are, at least in principle, expressible in
+REQL, we need to be able to handle them in \rematch. For this, we deploy the
+notion of enumeration algorithms and output delay, which measure the efficiency
+of an algorithm  %to process the input and deliver the output.
 with respect to both its input and its output.
 
 %As it is standard in the
@@ -21,7 +21,7 @@ In enumeration algorithms, we are required to produce the (finite) output set $O
 = \{o_1,\ldots ,o_k\}$, in any order, and without repetitions. Such algorithms
 operate in two phases:
 \begin{enumerate}
-	\item The pre-processing phase builds a data structure which allows
+	\item The pre-processing phase builds a data structure that allows
 	enumerating the results;
 	\item The enumeration phase retrieves the outputs from the data structure.%
 	without repetitions.
@@ -92,8 +92,9 @@ representation of all the outputs.
 The data structure we will use to represent the set of all output sequences in
 $\sem{\texttt{e}}_d$, for a REQL query $\texttt{e}$ and a document $d$ is called
 \emph{enumerable compact set}, or ECS for short, and was first introduced
-in~\citep{AmarilliJMR22,MunozR22}. The ECS data structure can be thought as a
-directed acyclic graph (DAG) with three types of nodes $\coid$:
+in~\citet{AmarilliJMR22} and then further developed in~\citet{MunozR22}. The ECS
+data structure can be thought as a directed acyclic graph (DAG) with three types
+of nodes $\coid$:
 \begin{itemize}
 	\item[(i)] a (unique) terminal node, denoted \cinit \ (or $\bot$ for short),
 	which has no children and tells us that we reached the end of an output;
@@ -101,12 +102,11 @@ directed acyclic graph (DAG) with three types of nodes $\coid$:
 	sequence and have a single child $\coid'$; and
 	\item[(iii)] union nodes, which have two children $\coid_1$ and $\coid_2$.
 \end{itemize}
-More importantly, every node $\coid$ defines a set of mappings $\sem{\coid}$,
-represented as a set of output sequences. Specifically, the \cinit \ represents
-the set $\sem{\cinit} = \{\epsilon\}$, the output node $\coid$ with the child
-$\coid'$ represents the set $\sem{\coid'} \cdot \{(S,i)\}$, and the union node
-with children $\coid_1$ and $\coid_2$ the set $\sem{\coid_1} \cup
-\sem{\coid_2}$.
+Every node $\coid$ defines a set of mappings $\sem{\coid}$, represented as a set
+of output sequences. Specifically, the \cinit \ represents the set $\sem{\cinit}
+= \{\epsilon\}$, the output node $\coid$ with the child $\coid'$ represents the
+set $\sem{\coid'} \cdot \{(S,i)\}$, and the union node with children $\coid_1$
+and $\coid_2$ the set $\sem{\coid_1} \cup \sem{\coid_2}$.
 %Certain nodes are then designated as \emph{output nodes}. Output nodes have no
 %incoming edges, and each path starting in an output node and leading to \cinit\
 %corresponds to an output. Enumeration in ECS is achieved by enumerating all
@@ -131,91 +131,6 @@ and $\mu_3$. As we can see, following paths from this node to the $\bot$ node
 represent the three output sequences. The shared output for the variable $y$ in
 $\mu_2$ and $\mu_3$ is represented only once.
 \end{example}
-
-%\paragraph*{Node manager} The key step when evaluating a REQL query over a
-%document is building the ECS which encodes all the outputs. Naively building
-%the ECS would require allocating the memory for each node being added, which is
-%highly inefficient. Therefore, \rematch\ includes a \emph{node manager} module,
-%denoted $\ds$, which allocates memory in bulk, and acts as a garbage collector
-%for the ECS. The $\ds$ module essentially creates a memory pool for storing the
-%nodes in the ECS. Each time $\ds$ fills the pool, it allocates the memory for
-%another pool double the original size. This strategy allows memory allocation
-%to occur infrequently and in big chunks, thus preventing fragmentation and
-%multiple pointer dereferencing. In addition, the $\ds$ module acts as a lazy
-%garbage collector by providing a method $\ds.\texttt{garbage}(\coid)$. This
-%method marks the node $\coid$ from the memory pool that will not be used in the
-%future, preventing the allocation of an additional memory pool if possible.
-%This marking can occur when a node is not required anymore by the evaluation
-%algorithm, detecting that it will not be reached from any newly added node,
-%thus allowing to delete the node and all the nodes reachable from it. To
-%implement garbage collection, the $\ds$ module keeps a pointer count for each
-%node in the memory pool. Once the pointer counter hits zero, it moves the node
-%to a pool of nodes that can be deleted. As stated previously, the memory
-%locations of these nodes are not liberated but are instead overwritten by newly
-%created nodes, in which case these locations are removed from the pool of nodes
-%to be deleted.
-
-%%REWRITTEN
-\section{Node manager (Optimization)}
-
-The key step when evaluating a REQL query over a document is building the ECS
-which encodes all the outputs. Naively building the ECS would require allocating
-the memory for each node being added, which is highly inefficient. Therefore,
-\rematch\ includes a \emph{node manager} module, denoted $\ds$, which allocates
-memory in bulk, and acts as a garbage collector for the ECS. The $\ds$ module
-essentially creates a memory pool for storing the nodes in the ECS. Each time
-$\ds$ fills the pool, it allocates the memory for another pool double the
-original size. This strategy allows memory allocation to occur infrequently and
-in big chunks, thus preventing fragmentation and multiple pointer dereferencing.
-In addition, the $\ds$ module acts as a lazy garbage collector by keeping a
-pointer count for each node in the memory pool. Once the pointer counter hits
-zero, it moves the node to a pool of nodes that can be deleted. This will happen
-when a node is not required anymore by the evaluation algorithm, detecting that
-it will not be reached from any newly added node, thus allowing to delete the
-node and other nodes whose pointer count hits zero by this removal.
-%all the nodes reachable from it. \domagoj{Strictly speaking, some reachable
-%nodes might be used by another run. Perhaps we should just say that the unused
-%node is deleted and the ref count is updated for reachable nodes?}
- As stated previously, the memory locations of deleted nodes are not liberated
- but are instead overwritten by newly created nodes, in which case these
- locations are removed from the pool of nodes to be deleted. We use the command
- $\ds.\texttt{discard}(\coid)$ when we wish to signal that a node is to be
- discarded.
-
-
-The node manager $\ds$ is also in charge of implementing the following three
-operations over nodes:
-\begin{itemize}
-	\item $\ds.\cinit$, which creates the terminal node;
-	\item $\ds.\cextend(\coid,(S,i))$, which creates a content node which
-	contains $(S,i)$, and links this newly created node to $\coid$; and
-	\item $\ds.\cunion(\coid_1,\coid_2)$, which takes nodes $\coid_1$ and
-	$\coid_2$, and creates a new union node, representing the union of both
-	outputs.
-\end{itemize}
-$\ds$ implements these three operations, taking constant time for each
-operation. Moreover, $\ds$ module supports enumerating outputs from any given
-node $\coid$, which we denote by $\ds.\cenumerate(\coid)$. More importantly,
-this enumeration takes output-linear delay, and one can do it at any point
-without further preprocessing. This last fact is the guarantee for \rematch\ to
-retrieve all outputs $\sem{\texttt{e}}_d$ with output-linear delay. We refer
-to~\citep{MunozR22} for the implementation details of such operations and
-enumeration procedure. 
-
-
-
-%While the first two operation can be implemented in a straightforward fashion,
-%asargue, $\cunion$ is a bit more involved, as it needs to ensure that no output
-%enumerated from $n_1$ is repeated when enumerating from $n_2$, and vice versa.
-%To achieve this, a special construction is deployed which we illustrate next.
-%
-%The $\ds$ module supports the three operations for implementing the ECS, as
-%explained above. When manipulating the ECS in \rematch, we will therefore write
-%$\ds.\cextend(n,(C,i))$ to denote that the node $n$ is pointed to by a newly
-%created node with the content $(C,i)$. Finally, the $\ds$ module supports
-%enumerating outputs from a given output node, which we denote by
-%$\ds.\cenumerate(n)$.
-
 
 \begin{figure}[t]
 	\begin{tikzpicture}[->,>=stealth, semithick, auto, initial text= {}, initial distance= {3mm}, accepting distance= {4mm}, node distance=1.2cm, semithick]
@@ -247,15 +162,103 @@ enumeration procedure.
 		\draw [->] (9) to (14); \draw [->] (11) to (15); \draw [->] (14) to
 		(15);
 	\end{tikzpicture}
+	\vspace*{3mm}
 	\caption{The ECS representing three outputs.}
 	\label{fig-ecs}
 	\vspace{-4mm}
 \end{figure}
 
+%\paragraph*{Node manager} The key step when evaluating a REQL query over a
+%document is building the ECS which encodes all the outputs. Naively building
+%the ECS would require allocating the memory for each node being added, which is
+%highly inefficient. Therefore, \rematch\ includes a \emph{node manager} module,
+%denoted $\ds$, which allocates memory in bulk, and acts as a garbage collector
+%for the ECS. The $\ds$ module essentially creates a memory pool for storing the
+%nodes in the ECS. Each time $\ds$ fills the pool, it allocates the memory for
+%another pool double the original size. This strategy allows memory allocation
+%to occur infrequently and in big chunks, thus preventing fragmentation and
+%multiple pointer dereferencing. In addition, the $\ds$ module acts as a lazy
+%garbage collector by providing a method $\ds.\texttt{garbage}(\coid)$. This
+%method marks the node $\coid$ from the memory pool that will not be used in the
+%future, preventing the allocation of an additional memory pool if possible.
+%This marking can occur when a node is not required anymore by the evaluation
+%algorithm, detecting that it will not be reached from any newly added node,
+%thus allowing to delete the node and all the nodes reachable from it. To
+%implement garbage collection, the $\ds$ module keeps a pointer count for each
+%node in the memory pool. Once the pointer counter hits zero, it moves the node
+%to a pool of nodes that can be deleted. As stated previously, the memory
+%locations of these nodes are not liberated but are instead overwritten by newly
+%created nodes, in which case these locations are removed from the pool of nodes
+%to be deleted.
+
+%%REWRITTEN
+\section{Node manager (optimization)}
+
+The key step when evaluating a REQL query over a document is building the ECS
+which encodes all the outputs. Naively building the ECS would require allocating
+the memory for each node being added, which is highly inefficient. Therefore,
+\rematch\ includes a \emph{node manager} module, denoted $\ds$, which allocates
+memory in bulk, and acts as a garbage collector for the ECS. The $\ds$ module
+essentially creates a memory pool for storing the nodes in the ECS. Each time
+$\ds$ fills the pool, it allocates the memory for another pool double the
+original size. This strategy allows memory allocation to occur infrequently and
+in big chunks, thus preventing fragmentation and multiple pointer dereferencing.
+In addition, the $\ds$ module acts as a lazy garbage collector by keeping a
+pointer count for each node in the memory pool. Once the pointer counter hits
+zero, it moves the node to a pool of nodes that can be deleted. This will happen
+when a node is not required anymore by the evaluation algorithm, detecting that
+it will not be reached from any newly added node, thus allowing one to delete
+the node and other nodes whose pointer count hits zero by this removal.
+%all the nodes reachable from it. \domagoj{Strictly speaking, some reachable
+%nodes might be used by another run. Perhaps we should just say that the unused
+%node is deleted and the ref count is updated for reachable nodes?}
+As stated previously, the memory locations of deleted nodes are not freed but
+are instead overwritten by newly created nodes, in which case these locations
+are removed from the pool of nodes to be deleted. We use the command
+$\ds.\texttt{discard}(\coid)$ when we wish to signal that a node is to be
+discarded.
+
+
+The node manager $\ds$ is also in charge of implementing the following three
+operations over nodes:
+\begin{itemize}
+	\item $\ds.\cinit$, which creates the terminal node;
+	\item $\ds.\cextend(\coid,(S,i))$, which creates a content node which
+	contains $(S,i)$, and links this newly created node to $\coid$; and
+	\item $\ds.\cunion(\coid_1,\coid_2)$, which takes nodes $\coid_1$ and
+	$\coid_2$, and creates a new union node, representing the union of both
+	outputs.
+\end{itemize}
+$\ds$ implements these three operations, taking constant time for each.
+Moreover, $\ds$ module supports enumerating outputs from any given node $\coid$,
+which we denote by $\ds.\cenumerate(\coid)$. Importantly, this enumeration takes
+output-linear delay, and one can do it at any point without further
+preprocessing. This last fact is the guarantee for \rematch\ to retrieve all
+outputs $\sem{\texttt{e}}_d$ with output-linear delay. We refer
+to~\citet{MunozR22} for the implementation details of such operations and
+enumeration procedure. 
 
 
 
-\section{Early output (Optimization)} 
+%While the first two operation can be implemented in a straightforward fashion,
+%asargue, $\cunion$ is a bit more involved, as it needs to ensure that no output
+%enumerated from $n_1$ is repeated when enumerating from $n_2$, and vice versa.
+%To achieve this, a special construction is deployed which we illustrate next.
+%
+%The $\ds$ module supports the three operations for implementing the ECS, as
+%explained above. When manipulating the ECS in \rematch, we will therefore write
+%$\ds.\cextend(n,(C,i))$ to denote that the node $n$ is pointed to by a newly
+%created node with the content $(C,i)$. Finally, the $\ds$ module supports
+%enumerating outputs from a given output node, which we denote by
+%$\ds.\cenumerate(n)$.
+
+
+
+
+
+
+
+\section{Early output (optimization)} 
 
 Note again that $\ds$ allows enumerating the outputs from a node at any point
 without further preprocessing. This fact is crucial for the optimization that we
@@ -265,8 +268,8 @@ entire document is read completely (for details, see
 Chapter~\ref{chpt:evaluation}). In essence, this means that we can provide
 certain outputs to the user at this point before continuing to construct the ECS
 in its entirety. The benefits are twofold: (i) the outputs are delivered to the
-user as soon as possible, similarly as pipelined evaluation is done in
-databases; and (ii) once we enumerate these outputs, we can delete the unused
-nodes, thus saving storage space. This optimization is highly effective in
-decreasing the memory usage and decreasing the time to deliver the first output
-(see Chapter~\ref{chpt:experiments}).
+user as soon as possible, similarly as pipelined evaluation in databases; and
+(ii) once we enumerate these outputs, we can delete the unused nodes, thus
+saving storage space. This optimization is highly effective in decreasing the
+memory usage and decreasing the time to deliver the first output (see
+Chapter~\ref{chpt:experiments}).
