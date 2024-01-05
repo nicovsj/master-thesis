@@ -8,8 +8,8 @@ REQL query, and let $d$ be a document. For a mapping $\mu$ and a number~$\ell$,
 let $\mu_{+\ell}$ be a mapping shifted by $\ell$, namely, for every variable
 $x$, $\mu_{+\ell}(x) = \Span{i+\ell}{j+\ell}$ where $\mu(x) = [i, j\rangle$. A
 \emph{segmentation} of $d$ is a sequence $[i_1, j_1\rangle, \ldots, [i_k,
-j_k\rangle$ of spans of $d$ such that $j_{h} < i_{h+1}$ for every $h < k$. We
-say that the segmentation is \emph{valid} for $\cA$ over $d$ iff
+j_k\rangle$ of spans of $d$ such that $j_{h} < i_{h+1}$ for every $1 \geq h <
+k$. We say that the segmentation is \emph{valid} for $\cA$ over $d$ iff
 $$
 	\semd{\cA} = \cup_{h=1}^k \{\mu_{+i_h} \mid \mu \in \sem{\cA}(d[i_h, j_h\rangle) \}
 $$
@@ -28,7 +28,7 @@ expressions. For example, RE2~\citep{cox2007regular} runs a deterministic
 automaton back and forth to find the starting and ending positions for the
 leftmost-longest match. Unfortunately, such approaches are unsuitable for our
 setting. Our approach follows the \emph{split-correctness} framework  proposed
-in~\citep{DoleschalKMNN19}. The main goal of split-correctness is to find a REQL
+in~\citet{DoleschalKMNN19}. The main goal of split-correctness is to find a REQL
 query $\texttt{e}_\cA$ with a single variable such that $\semd{\texttt{e}_\cA}$
 is a valid segmentation of $\cA$ over~$d$. The filtering module in \rematch\ is
 inspired by split-correctness, but we improve the approach in two ways. First,
@@ -37,14 +37,15 @@ expressions for finding a segmentation. Instead, for filtering, we consider any
 segmentation algorithm (i.e., not necessarily based on a regex) that, given
 $\cA$ and $d$, finds a valid segmentation for $\cA$ over $d$. Second, we look
 for a ``cheap'' segmentation algorithm, i.e., a process that runs faster than
-the evaluation algorithm. Indeed, using regex for filtering does not payoff if
+the evaluation algorithm. Indeed, using RegEx for filtering does not pay off if
 computing the segmentation takes longer than evaluating the target query itself.
-%Therefore, we want a segmentation procedure that is simple and efficient to ensure that it will save time.
+%Therefore, we want a segmentation procedure that is simple and efficient to
+%ensure that it will save time.
 
 %\cristian{Improve here the presentation of the ``light search'' optimization.
 %Basically, better present the name of the algorithm. }
 
-\section{Light search (Optimization)}
+\section{Light search (optimization)}
 
 In \rematch, the filtering module finds a segmentation by simulating the logical
 VA over the document, but only storing the starting and ending position where
@@ -61,7 +62,7 @@ $
 such that $q \in S$, $a \in \cset(C)$, and $v_i$ is a variable marker (e.g.,
 $\Open{x}$ or $\Close{x}$) for every $i \leq m$. We also define
 $\delta^*(S,\epsilon)$ such that $p \in \delta^*(S,\epsilon)$ if, and only if,
-$p$ can be reached from a state in $S$, by only using variable transitions.
+$p$ can be reached from a state in $S$ by only using variable transitions.
 
 \newcommand{\foutput}{\texttt{output}} \newcommand{\fends}{\texttt{ends}}
 \newcommand{\fnext}{\operatorname{next}_{\delta}}
@@ -95,13 +96,13 @@ are boolean values. The first component $S'$ is equal to $\delta^*(S, a) \cup
 \delta^*(\{q_0\}, a)$. Intuitively, $\delta^*(S, a)$ are all states that one can
 reach from $S$  by using some variable transitions and reading~$a$. On the other
 hand, $\delta^*(\{q_0\}, a)$ are the new states that one can reach by starting
-from $q_0$ and by reading $a$. Recall that a match can be made from any position
-in the document, so we start a fresh run by using $\delta^*(\{q_0\}, a)$. The
+from $q_0$ and reading $a$. Recall that a match can be made from any position in
+the document, so we start a fresh run by using $\delta^*(\{q_0\}, a)$. The
 second component $\foutput$ is true iff $q_f \in \delta^*(S', \epsilon)$,
 namely, $\foutput$ is true when there is a run that reaches the final state.
 Finally, $\fends$ is true iff $\delta^*(S, a) = \emptyset$, which tells whether
-the runs in $S$ ends with the new letter. When implementing
-Algorithm~\ref{alg:segmentation} in \rematch, we cache the output $\fnext(S,
+the runs in $S$ end with the new letter. When implementing
+Algorithm~\ref{alg:segmentation} in \rematch, we cache the value of $\fnext(S,
 a)$, in order to compute it at most once for every pair $(S,a)$.
 
 We have all the ingredients to explain how Algorithm~\ref{alg:segmentation}
@@ -113,8 +114,8 @@ active span) where there is an output, namely, $\sem{\cA}(d[i, j\rangle) \neq
 a segment yet (i.e., from the previous segment that was output). In lines 2-3,
 we start by setting $S = \emptyset$ (i.e., no active runs) and $(i,j) = (0,0)$
 (i.e., no active span). Then we iterate sequentially over each letter $a_\ell$.
-For each letter, we compute $\fnext(S, a_\ell)$ returning as output the triple
-$(S', \foutput, \fends)$ where $S'$ is the new set of active states (line 5). If
+For each letter, we compute $\fnext(S, a_\ell)$ returning the triple $(S',
+\foutput, \fends)$ where $S'$ is the new set of active states (line 5). If
 $\foutput$ is true, an active state can reach $q_f$ and the segment $[i,
 \ell+1\rangle$ contains an output. Then by setting $j = \ell+1$ we update the
 new active span (lines 6-7). Instead, if there is no output and $\fends$ is
@@ -232,8 +233,10 @@ case.
 Algorithm~\ref{alg:segmentation} maintains the invariant that, after reading
 $a_\ell$, $i$ is a position before any of the current active runs started and,
 if $i < j$,  then $j$ is the latest position such that $\sem{\cA}(d[i, j\rangle)
-\neq \emptyset$. Indeed, these invariant is enough to prove that the algorithm
-is correct.
+\neq \emptyset$. Indeed, these invariants are enough to prove that the algorithm
+is correct. The following theorem summarizes the correctness of the algorithm
+(its proof can be founud in Appendix \ref*{app:segmentation}):
+
 \begin{theorem}\label{theo:segmentation} Given a logical VA $\cA$ and a document
 	$d$, Algorithm~\ref{alg:segmentation} outputs a sequence of spans $[i_1,
 	j_1\rangle, \ldots, [i_k, j_k\rangle$ that is a valid segmentation for $\cA$
