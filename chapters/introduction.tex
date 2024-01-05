@@ -1,31 +1,33 @@
 % % !TeX root = ../main.tex
 
 Regular expressions, or RegEx, are one of the most used technologies for
-managing text data. The development of RegEx engines started in the early
-70s~\cite{thompson1968programming,earlyNFA}, and they are now a common part of
-many complex information systems such as compilers, databases, or search
-engines. Moreover, modern RegEx engines are highly-optimized systems that are
-crucial for finding patterns in diverse areas like biology~\cite{Gonzalo},
-literature~\cite{lit1}, or medicine~\cite{FloresFP21}. 
+managing text data. RegEx engines, integral to many complex information systems
+like compilers, databases, and search engines, have evolved significantly since
+their inception in the late 1960s~\cite{thompson1968programming,earlyNFA}. The
+development of these engines paved the way for their widespread use. Classic
+Unix programs such as grep, find, sed, and AWK exemplify this by utilizing RegEx
+as a core feature. Furthermore, modern RegEx engines have become highly
+optimized, playing a crucial role in pattern recognition across various
+domains.~\cite{Gonzalo}, literature~\cite{lit1}, or medicine~\cite{FloresFP21}. 
 
 
 Given a regular expression and a document, the task of a RegEx engine is to find
-all occurrences, or \emph{matches}, of the pattern in the document. For this,
-RegEx engines deploy the so-called \emph{leftmost-longest}
-paradigm~\cite{posix}, meaning that they find the match which is the leftmost
-one, and from there they find the longest possible match. The process is then
-repeated  starting from the rightmost position of the previous
-match\footnote{Although RegEx engines follow different matching rules, the
-leftmost-longest rule is at the core of most modern engines. For a detailed
-discussion see \cite{friedl2006mastering}.}. For example, if we want to evaluate
-the RegEx $\texttt{aa}$ over the document $a_0 a_1 a_2 a_3$ (here the subindices
-are for referencing positions; the document consists of the letter $a$ repeated
-four times), a typical RegEx engine will output the matches $a_0a_1$ and
-$a_2a_3$. In particular, RegEx engines will not output $a_1a_2$ since the first
-leftmost-longest match ends with $a_1$. 
+all occurrences, or \emph{matches}, of any string in the language of the regular
+expression that is also present in the document. For this, RegEx engines deploy
+the so-called \emph{leftmost-longest} paradigm~\cite{posix}, meaning that they
+find the match whose starting position is the leftmost one, and from there they
+find the longest possible match. The process is then repeated  starting from the
+rightmost position of the previous match\footnote{Although RegEx engines follow
+different matching rules, the leftmost-longest rule is at the core of most
+modern engines. For a detailed discussion see \cite{friedl2006mastering}.}. For
+example, if we want to evaluate the RegEx $\texttt{aa}$ over the document $a_0
+a_1 a_2 a_3$ (here the subindices are for referencing positions; the document
+consists of the letter $a$ repeated four times), a typical RegEx engine will
+output the matches $a_0a_1$ and $a_2a_3$. In particular, RegEx engines will not
+output $a_1a_2$ since the first leftmost-longest match ends with $a_1$. 
 
-The leftmost-longest semantics is standard for  RegEx engines, as it captures
-the majority of meaningful matches, although not all of them. However, in some
+The leftmost-longest semantics is standard for RegEx engines, as it captures the
+majority of meaningful matches, although not all of them. However, in some
 scenarios adopting an ``all-match semantics'' is a valuable and desirable
 feature for the users. For instance, in DNA analysis we will often need to match
 patterns (called motifs) onto a DNA sequence, and these can overlap. The
@@ -33,32 +35,38 @@ question of finding overlapping matches with RegEx is also recurrent in user
 discussions~\cite{overlap1,overlap2,overlap3}. For information extraction, the
 all-match semantics leaves freedom to the user to extract all positions, called
 spans, where there is relevant information in a document. Therefore the
-all-match semantics is a desirable feature for RegEx engines that, to the best
-of our knowledge, no engine supports natively.
+all-match semantics can be a desirable feature for RegEx engines and, to the
+best of our knowledge, no engine supports natively.
 
-To overcome the problem of finding all-matches, RegEx engines offer look-around
-operators, namely, operators that allows checking if a subexpression can be
-matched forward or backward from the current position, without advancing from
-the current position. For instance, by using look-around, we can modify the
-expression \texttt{aa} to \texttt{(?=(aa))} and find the missing match $a_1a_2$
-over the above document. Despite this example, look-around operators cannot
-discover all matches for every RegEx expression. For instance, given the
-look-around definition, one cannot extract two matches that start at the same
-position (for concrete examples see Section~\ref{chpt:regex} and
-Section~\ref{chpt:experiments}).
+
+RegEx engines use special operators called ``look-around" and  that can help to
+find all possible matches in a text. These operators check for a match either
+ahead or behind the current position in the text, without moving (i.e. consuming
+the text) from that spot. For example, if we change the RegEx \texttt{aa} to a
+look-ahead (a type of look-around) with \texttt{(?=aa)}, we can find the missing
+match $a_1a_2$ from the example above. This is because the look-ahead acts an
+assertion in the RegEx that can capture the string $aa$ without consuming it in
+the text, and thus, opening the possibility to capture overlapping matches.
+However, even with look-around, it's not always possible to find every match.
+Specifically, look-around can't find multiple matches that begin at the same
+point in the text.  (for concrete examples see Sections~\ref{chpt:regex} and
+\ref{chpt:experiments}).
 
 In terms of implementation, RegEx engines are usually divided into three
 categories: DFA-based, NFA-based, and recursive NFA-based~\cite{cox2007regular}.
-DFA is generally the fastest evaluation strategy, followed by (plain) NFA. In
-contrast, recursive NFA-based engines use backtracking, which is susceptible to
-well-documented performance issues, like regular expression denial of service
-attacks (ReDos)~\cite{friedl2006mastering}, where the engine can exhibit
-exponential time performance~\cite{cox2007regular}. From the positive side,
-recursive NFA-based engines have the advantage of keeping track of the
-evaluation, which allows implementing operators like look-around and
-back-references. In summary, until now, the only way of finding all matches (in
-some cases) is by using look-around operators implemented by recursive NFA-based
-engines, which suffer from unfortunate performance issues. 
+DFA is generally the fastest evaluation strategy (if the RegEx is small enough),
+followed by (plain) NFA. In contrast, recursive NFA-based engines use
+backtracking, which is susceptible to well-documented performance issues, like
+regular expression denial of service attacks (ReDos)~\cite{friedl2006mastering},
+where the engine can exhibit exponential time performance~\cite{cox2007regular}.
+From the positive side, recursive NFA-based engines have the advantage of
+keeping track of the evaluation, which allows implementing operators like
+look-around and back-reference (an operator that allows matching the same text
+as previously matched by a capturing group), and also can avoid worst-cases
+where the DFA is exponential in the size of the RegEx. In summary, until now,
+the only way of finding all matches (in some cases) is by using look-around
+operators implemented by recursive NFA-based engines, which suffer from
+unfortunate performance issues. 
 
 To overcome these issues, this thesis presents \rematch, a RegEx engine
 supporting the all-match semantics, and its accompanying regular expression
@@ -77,7 +85,7 @@ variables and the all-match semantics.
 
 \item We present \rematch, a RegEx system whose architecture allows evaluating
 REQL using output-linear delay. For this, we develop a new evaluation method
-which extends the theoretical algorithm of~\cite{FlorenzanoRUVV20} and
+that extends the theoretical algorithm of~\cite{FlorenzanoRUVV20} and
 incorporates new optimization techniques, allowing \rematch\ to compete with
 modern RegEx engines. 
 
