@@ -1,22 +1,23 @@
 % !TeX spellcheck = en_US !TeX root = ../main/main.tex
 
 The first step for the evaluation of a REQL query is the compilation and
-rewriting into a logical plan, called a \emph{logical VA}. This plan is
-essentially an automaton with variables that is equally expressive as a REQL
-query. Furthermore, logical VA is suitable for rewriting. Specifically, we
-perform an \emph{offset} transformation over the logical VA that keeps the
-semantics of the query but improves the performance of the evaluation algorithm.
-Next we explain these two components. %of \rematch.
+rewriting into a logical plan, called a \emph{logical VA} (short for logical
+variable-set automaton). This plan is essentially an automaton with variables
+that is equally expressive as a REQL query. Furthermore a logical VA is suitable
+for rewriting. Specifically, we perform an \emph{offset} transformation over the
+logical VA that keeps the semantics of the query but improves the performance of
+the evaluation algorithm. Next we explain these two components. %of \rematch.
 
 \section{Logical VA}
 
-A \emph{logical variable-set automata} (logical VA) is a finite state automaton
-extended with captures variables. % in a way analogous to REQL.
+A \emph{logical variable-set automata} (logical VA) is a non-deterministic
+finite state automaton extended with captures variables.
+% in a way analogous to REQL.
 Formally, a logical VA $\cA$ is a tuple $(Q, \delta, q_0, q_f)$, where $Q$ is a
 finite set of states, $q_0$ and $q_f$ are the initial and the final state, and
 $\delta$ is a transition relation consisting of letter transitions $(q, C, q')$,
 and variable transitions $(q, \Open{x}, q')$ or $(q, \Close{x}\,,q')$, where $q,
-q' \in Q$, $C$ is a char class (e.g, a letter $\texttt{a}$, $\texttt{[w]}$ or
+q' \in Q$, $C$ is a char class (e.g., a letter $\texttt{a}$, $\texttt{[w]}$ or
 $\texttt{[\textasciicircum w]}$) and $x$ is a variable. The $\Open{x}$ and
 $\Close{x}$ are special symbols to denote the opening or closing of a variable
 $x$. In the following, we refer to $\Open{x}$ and $\Close{x}$ collectively as
@@ -28,20 +29,20 @@ $d$. A run $\rho$ over $d = a_0 a_1 \cdots a_{n-1}$ is a sequence:
 $$
 	\rho \ = \ (q_0, i_0) \ \trans{o_1} \ (q_1, i_1) \ \trans{o_2} \ \cdots \ \trans{o_m} \ (q_m, i_m)
 $$
-where $(q_j, o_{j+1}, q_{j+1}) \in \delta$ and $i_0, \ldots, i_m$ is an
-increasing sequence, and $i_{j+1} = i_j +1$ if $o_{j+1}$ is a char class such
-that $a_{i_j} \in \cset(o_{j+1})$   (i.e.\ the automata moves one position in
-the document only when reading a letter) and $i_{j+1} = i_j$ otherwise.
-Furthermore, $\rho$ must satisfy that variables are opened and closed in a
-correct manner, namely, each $x$ is closed at most once and only if it is opened
-previously. We say that $\rho$ is \emph{accepting} if $q_m = q_f$ in which case
-we define the mapping $\mu^{\rho}$ that maps $x$ to $[i_j, i_k\rangle$ if, and
-only if, $o_{i_j} = \Open{x}$ and $o_{i_k} = \Close{x}$ in~$\rho$. Notice that
-we do not require that $i_0 = 0$, nor $i_m=n$; namely, an accepting run can
-start or end at any position in the document $d$, as long as it consumes a
-contiguous substring of $d$. Finally, the semantics of $\cA$ over $d$, denoted
-by \(\semd{\cA}\) is defined as the set of all $\mu^{\rho}$ where $\rho$ is an
-accepting run of $\cA$ over $d$.
+where $(q_j, o_{j+1}, q_{j+1}) \in \delta$,  $i_0, \ldots, i_m$ is an increasing
+sequence, and $i_{j+1} = i_j +1$ if $o_{j+1}$ is a char class such that $a_{i_j}
+\in \cset(o_{j+1})$   (i.e.,\ the automaton moves one position in the document
+only when reading a letter) and $i_{j+1} = i_j$ otherwise. Furthermore, $\rho$
+must satisfy that variables are opened and closed in a correct manner, namely,
+each $x$ is closed at most once and only if it is opened previously. We say that
+$\rho$ is \emph{accepting} if $q_m = q_f$, in which case we define the mapping
+$\mu^{\rho}$ that maps $x$ to $[i_j, i_k\rangle$ if, and only if, $o_{i_j} =
+\Open{x}$ and $o_{i_k} = \Close{x}$ in~$\rho$. Notice that we do not require
+that $i_0 = 0$, nor $i_m=n$; namely, an accepting run can start or end at any
+position in the document $d$, as long as it consumes a contiguous substring of
+$d$. Finally, the semantics of $\cA$ over $d$, denoted by \(\semd{\cA}\) is
+defined as the set of all $\mu^{\rho}$ where $\rho$ is an accepting run of $\cA$
+over $d$.
 
 \begin{example}\label{example:logicalVA} Consider the REQL query \texttt{e0} of
 	Example~\ref{example:basic}. The following is a logical VA representing
@@ -72,8 +73,8 @@ accepting run of $\cA$ over $d$.
 	$\Close{x}$, respectively, and the middle edges are letter transitions.
 \end{example}
 Example~\ref{example:logicalVA} shows how to compile a REQL query into a logical
-VA. Using a Thomson-liked construction~\citep{HopcroftU79}, we can covert every
-REQL query into a logical VA, giving us a logical plan for the query.
+VA. Using a construction similar to Thomson's~\citep{HopcroftU79}, we can covert
+every REQL query into a logical VA, giving us a logical plan for the query.
 \begin{proposition} \label{prop:logicalVA} For every REQL query $\texttt{e}$,
 	one can build in linear time a logical VA $\cA$  such that
 	$\sem{\texttt{e}}_d = \sem{\cA}_d$ for every document~$d$.
@@ -81,15 +82,16 @@ REQL query into a logical VA, giving us a logical plan for the query.
 %\cristian{Notar que como esta actualmente el modelo, no podemos compilar los
 %caracteres especiales de inicio y fin de documento. Tampoco están soportados
 %por REmatch actualmente como dice Nico, así que debemos tomar una decisión.}
-Note that logical VA is an extension of \emph{variable-set automata} (VA)
-from~\citep{FaginKRV15}. The main difference between the two models is that
-logical VA uses char classes in its letter transitions whereas VA uses
-individual letters. Moreover, a logical VA can start a run at any position,
-whereas VA starts from the beginning of the document. Although both models are
-equally expressive, we use logical VAs as logical plans for compiling REQL
-formulas in practice.
+The proof for proposition \ref*{prop:logicalVA} is included in Appendix
+\ref*{app:logicalVA}, with the details of the construction. Note that logical VA
+is an extension of \emph{variable-set automata} (VA) from~\citet{FaginKRV15}.
+The main difference between the two models is that logical VA uses char classes
+in its letter transitions whereas VA uses individual letters. Moreover, a
+logical VA can start a run at any position, whereas VA starts from the beginning
+of the document. Although both models are equally expressive, we use logical VAs
+as logical plans for compiling REQL formulas in practice.
 
-\section{Offsets (Optimization)}
+\section{Offsets (optimization)}
 
 In some cases, opening a variable can be postponed in order not to store the
 information about runs that will not result in an output. To illustrate this,
@@ -102,7 +104,7 @@ abandoned, and not result in any outputs. In cases such as these, we can
 actually postpone (offset) opening of the variable $x$ by transforming the
 logical VA as follows: (i) first read the word \texttt{that}; (ii) now open a
 variable marker $\Open{x}$, but remember that it was actually opened four
-symbols before (i.e. it has an offset 4); (iii) proceed with the current run.
+symbols before (i.e., it has an offset 4); (iii) proceed with the current run.
 When reconstructing the output, we will start reading four symbols before the
 position that is stored for $\Open{x}$. The transformation of the logical VA
 from Example~\ref{example:logicalVA} would look as follows:
@@ -130,6 +132,7 @@ opened, the variable \texttt{x} actually stores characters starting four
 positions before the guarded position.
 
 Offsets are implemented in the rewriting module of \rematch\ after constructing
-the first logical VA from a REQL query. When the query contains quantifiers or
-alternations special care must be taken for offsetting the variables. More
-details are provided in Appendix \ref{app:offset}.
+the first logical VA from a REQL query. When the query contains quantifiers
+(\texttt{*}, \texttt{+}, \texttt{?} and \texttt{\{$n$,$m$\}} operators) or
+alternations (\texttt{|} operator) special care must be taken for offsetting the
+variables. More details are provided in Appendix \ref{app:offset}.
