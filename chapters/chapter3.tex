@@ -24,11 +24,11 @@ possible.
 %and then we look for a minimal segmentation whenever it is possible.
 
 Filtering the document into disjoint segments is not new when evaluating regular
-expressions. For example, RE2~\cite{cox2007regular} runs a deterministic
+expressions. For example, RE2~\citep{cox2007regular} runs a deterministic
 automaton back and forth to find the starting and ending positions for the
 leftmost-longest match. Unfortunately, such approaches are unsuitable for our
 setting. Our approach follows the \emph{split-correctness} framework  proposed
-in~\cite{DoleschalKMNN19}. The main goal of split-correctness is to find a REQL
+in~\citep{DoleschalKMNN19}. The main goal of split-correctness is to find a REQL
 query $\texttt{e}_\cA$ with a single variable such that $\semd{\texttt{e}_\cA}$
 is a valid segmentation of $\cA$ over~$d$. The filtering module in \rematch\ is
 inspired by split-correctness, but we improve the approach in two ways. First,

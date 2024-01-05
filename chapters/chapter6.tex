@@ -12,7 +12,7 @@ real-world text corpora, and:
 \end{enumerate}
 We begin by describing the datasets and experiments used in the remainder of
 this section. All the data, queries and the implementation of \rematch, can be
-found at~\cite{REPO}.
+found at~\citep{REPO}.
 
 
 \begin{figure}[t]
@@ -51,11 +51,11 @@ We use the following three real-world text corpora:
 	into a single document of size 50.7 MB and around 50 million characters.
 	\item \textsf{DNA.} This dataset consists of DNA sequences. In particular,
 	we used the list of proteomes of the zebrafish organism that is provided by
-	the BLAST initiative~\cite{blast}. The combined size of this dataset is 38.5
+	the BLAST initiative~\citep{blast}. The combined size of this dataset is 38.5
 	MB and 38.5 million characters.
 	\item \textsf{SPARQL.} Our final dataset consists of public query logs of
 	the (now defunct) British Museum SPARQL endpoint, as extracted and collected
-	by the Linked SPARQL Queries Dataset team \cite{LSQ}. We merged all the logs
+	by the Linked SPARQL Queries Dataset team \citep{LSQ}. We merged all the logs
 	into a single document weighing 71.1 MB, and consisting of roughly 76
 	million characters.
 \end{enumerate}
@@ -66,19 +66,19 @@ Our queries for each dataset are designed as follows:
 	\item \textsf{Literature.} Here we take a list of common English language
 	morphemes\footnote{A morpheme is the smallest meaningful constituent of a
 	linguistic expression, \url{https://en.wikipedia.org/wiki/Morpheme}.}, as
-	provided by \cite{morphemes}. We then specify queries that look for
-	2-grams~\cite{morphemes}, that is, two consecutive words each containing a
+	provided by \citep{morphemes}. We then specify queries that look for
+	2-grams~\citep{morphemes}, that is, two consecutive words each containing a
 	morpheme from our list (e.g. the first word ends in -ing, and the second one
 	in -er).
 	\item \textsf{DNA.} Motif detection is a key task in DNA
 	analysis\footnote{\url{https://en.wikipedia.org/wiki/Sequence_motif}}. In
 	this query set we select 100 DNA motifs from the Prosite
-	database~\cite{prosite} that commonly occur in our dataset. Our queries take
+	database~\citep{prosite} that commonly occur in our dataset. Our queries take
 	any such pair of motifs, and look for their occurrences in the proteomic
 	sequence separated by at most 20 characters.
 	\item \textsf{SPARQL.} Our  logs have distinct SPARQL queries listed in each
 	line. For our expressions we fix two sets of up to three SPARQL
-	keywords~\cite{sparql11} (e.g., \texttt{WHERE} or \texttt{OPTIONAL}), and
+	keywords~\citep{sparql11} (e.g., \texttt{WHERE} or \texttt{OPTIONAL}), and
 	extract two consecutive queries where the first one contains the keywords
 	from the first set, and the second one from the second set. 
 \end{enumerate}
@@ -213,13 +213,13 @@ engines that can approximate the all-match semantics using look-around
 operators, and the ones that cannot. In our comparison the following engines are
 used:
 \begin{itemize}
-	\item \textsf{PCRE}~\cite{pcre} version: 8.45;
-	\item \textsf{PCRE2}~\cite{pcre2} version 10.40 (using JPCRE2 C++
-	wrapper~\cite{wrapper});
-	\item \textsf{Boost.Regex}~\cite{boost} version 1.81.0;
-	\item \textsf{Oniguruma}~\cite{oniguruma} version 6.9.7.1;
-	\item \textsf{RE2}~\cite{re2} version 2021--11--01; and
-	\item \textsf{TRE}~\cite{tre} version 0.8.0.
+	\item \textsf{PCRE}~\citep{pcre} version: 8.45;
+	\item \textsf{PCRE2}~\citep{pcre2} version 10.40 (using JPCRE2 C++
+	wrapper~\citep{wrapper});
+	\item \textsf{Boost.Regex}~\citep{boost} version 1.81.0;
+	\item \textsf{Oniguruma}~\citep{oniguruma} version 6.9.7.1;
+	\item \textsf{RE2}~\citep{re2} version 2021--11--01; and
+	\item \textsf{TRE}~\citep{tre} version 0.8.0.
 \end{itemize}
 For engines that support look-around operators (\textsf{PCRE}, \textsf{PCRE2},
 \textsf{Boost} and \textsf{Oniguruma}) we rewrite the experiments from

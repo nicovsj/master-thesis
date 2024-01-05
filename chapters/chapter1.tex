@@ -4,7 +4,7 @@ This section introduces REQL, a RegEx Query Language for information extraction,
 that we implement in \rematch. The language is an extension of the classical
 RegEx syntax (e.g. POSIX Basic Regular Expressions) familiar to most users. On
 the other hand, the semantics is inspired by the document spanner
-framework~\cite{FaginKRV15} that captures all appearances of a pattern in the
+framework~\citep{FaginKRV15} that captures all appearances of a pattern in the
 document. 
 
 In the following, we present the formal syntax and semantics of REQL, and
@@ -13,12 +13,12 @@ provide several examples of REQL queries.
 \section{Documents and spans}
 
 We follow the theoretical framework of documents and spans introduced
-in~\cite{FaginKRV15}. For us, a document $d$ is simply a string over some finite
+in~\citep{FaginKRV15}. For us, a document $d$ is simply a string over some finite
 alphabet (e.g. the ASCII charset, UTF-8, or a similar encoding
 scheme)\footnote{Note that a multi-line document is simply a single string.}. We
 write $d = a_0a_1 \ldots a_{n-1}$ to denote a document of length $|d| = n$ where
 $a_{i}$ is the $i$-symbol (note that the first symbol starts from
-$0$)\footnote{In \cite{FaginKRV15}, the first position is $1$. We use $0$ to be
+$0$)\footnote{In \citep{FaginKRV15}, the first position is $1$. We use $0$ to be
 compliant with programming languages and RegEx engines which use $0$ as the
 start position.}. An example of a document is given in Figure~\ref{fig-doc}. A
 \emph{span} of a document $d$ (also called a \emph{match}) is a pair $s =
@@ -117,7 +117,7 @@ the capture of the same variable multiple times. For instance, a query like
 $\texttt{!x\{a!x\{b\}\}}$ defines the capture of $\texttt{x}$ twice. For this
 reason, REQL has some simple syntactic restrictions to use variables correctly.
 Let $\Var(\texttt{e})$ be the set of all variables names used in $\texttt{e}$.
-We say that a REQL query is \emph{well-designed}\footnote{In~\cite{FaginKRV15},
+We say that a REQL query is \emph{well-designed}\footnote{In~\citep{FaginKRV15},
 expressions satisfying these conditions are called \emph{functional}.} if every
 subquery~$\texttt{e}$ satisfies the following four conditions: (1)~if
 $\texttt{e}=\texttt{!x\{e1\}}$, then $\texttt{x} \notin \Var(\texttt{e1})$,
@@ -130,7 +130,7 @@ that queries $\texttt{!x\{a!x\{b\}\}}$, $\texttt{!x\{a\}!x\{b\}}$,
 $\texttt{a|!x\{b\}}$, or $\texttt{(!x\{a\}b)*}$ are not well-designed. Instead,
 queries like $\texttt{!x\{a\}!y\{b\}}$, $\texttt{!x\{a\}|!x\{b\}}$, or
 $\texttt{!x\{a\}(b)*}$ do satisfy all conditions and then are well-designed.
-Note that, as shown in~\cite{FaginKRV15}, the well-designed condition does not
+Note that, as shown in~\citep{FaginKRV15}, the well-designed condition does not
 diminish the query language's expressive power. Then from now on, we will
 consider all the queries we evaluate to be well-designed.
 
@@ -178,7 +178,7 @@ domain is the empty set).
 \end{table}
 
 With the formalism of mappings, we can give a concise declarative semantics for
-REQL, similarly as in \cite{MaturanaRV17}. This is done in
+REQL, similarly as in \citep{MaturanaRV17}. This is done in
 Table~\ref{tab-semantics}. The semantics is defined by structural induction on
 $\texttt{e}$ and has two layers. The first layer, $\sempd{\texttt{e}}$, defines
 the set of all pairs $(s,\mu)$ with $s \in \sub(d)$ and $\mu$ a mapping such
@@ -336,7 +336,7 @@ semantics from classical RegEx. Therefore, we introduce REQL as a new query
 language rather than presenting it as an extension of RegEx. 
 
 The class of regular expressions with extraction variables was first introduced
-by Fagin et al.~\cite{FaginKRV15}. Their framework is called Document Spanners,
+by Fagin et al.~\citep{FaginKRV15}. Their framework is called Document Spanners,
 and it formalizes the process of extracting relations from text documents. We
 base REQL semantics on Document Spanners, although there are several
 differences. First, while Document Spanners are a theoretical tool for

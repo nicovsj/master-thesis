@@ -10,13 +10,13 @@ algorithm  %to process the input and deliver the output.
 with respect to both its input and its output.
 
 %As it is standard in the
-%literature~\cite{bagan2006mso,courcelle2009linear,Segoufin13,segoufin2014glimpse},
+%literature~\citep{bagan2006mso,courcelle2009linear,Segoufin13,segoufin2014glimpse},
 %we will use the RAM model of computation where the space used to store
 %integers, variable markers, and time for memory lookups and update time are all
 %$\mathcal{O}(1)$. To gauge the efficiency of our approach, 
 More formally, we use the framework of \emph{enumeration algorithms}, which
 received a lot of attention in the database
-community~\cite{AmarilliBMN-tods21,FlorenzanoRUVV20,LosemannM-lics14,SchweikardtSV-jacm22,BerkholzGS-siglog20,Segoufin13,IdrisUVVL-vldbj20,IdrisUV-sigmod17,TziavelisAGRY-pvldb20}.
+community~\citep{AmarilliBMN-tods21,FlorenzanoRUVV20,LosemannM-lics14,SchweikardtSV-jacm22,BerkholzGS-siglog20,Segoufin13,IdrisUVVL-vldbj20,IdrisUV-sigmod17,TziavelisAGRY-pvldb20}.
 In enumeration algorithms, we are required to produce the (finite) output set $O
 = \{o_1,\ldots ,o_k\}$, in any order, and without repetitions. Such algorithms
 operate in two phases:
@@ -92,7 +92,7 @@ representation of all the outputs.
 The data structure we will use to represent the set of all output sequences in
 $\sem{\texttt{e}}_d$, for a REQL query $\texttt{e}$ and a document $d$ is called
 \emph{enumerable compact set}, or ECS for short, and was first introduced
-in~\cite{AmarilliJMR22,MunozR22}. The ECS data structure can be thought as a
+in~\citep{AmarilliJMR22,MunozR22}. The ECS data structure can be thought as a
 directed acyclic graph (DAG) with three types of nodes $\coid$:
 \begin{itemize}
 	\item[(i)] a (unique) terminal node, denoted \cinit \ (or $\bot$ for short),
@@ -199,7 +199,7 @@ node $\coid$, which we denote by $\ds.\cenumerate(\coid)$. More importantly,
 this enumeration takes output-linear delay, and one can do it at any point
 without further preprocessing. This last fact is the guarantee for \rematch\ to
 retrieve all outputs $\sem{\texttt{e}}_d$ with output-linear delay. We refer
-to~\cite{MunozR22} for the implementation details of such operations and
+to~\citep{MunozR22} for the implementation details of such operations and
 enumeration procedure. 
 
 

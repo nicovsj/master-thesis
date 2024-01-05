@@ -72,7 +72,7 @@ accepting run of $\cA$ over $d$.
 	$\Close{x}$, respectively, and the middle edges are letter transitions.
 \end{example}
 Example~\ref{example:logicalVA} shows how to compile a REQL query into a logical
-VA. Using a Thomson-liked construction~\cite{HopcroftU79}, we can covert every
+VA. Using a Thomson-liked construction~\citep{HopcroftU79}, we can covert every
 REQL query into a logical VA, giving us a logical plan for the query.
 \begin{proposition} \label{prop:logicalVA} For every REQL query $\texttt{e}$,
 	one can build in linear time a logical VA $\cA$  such that
@@ -82,7 +82,7 @@ REQL query into a logical VA, giving us a logical plan for the query.
 %caracteres especiales de inicio y fin de documento. Tampoco están soportados
 %por REmatch actualmente como dice Nico, así que debemos tomar una decisión.}
 Note that logical VA is an extension of \emph{variable-set automata} (VA)
-from~\cite{FaginKRV15}. The main difference between the two models is that
+from~\citep{FaginKRV15}. The main difference between the two models is that
 logical VA uses char classes in its letter transitions whereas VA uses
 individual letters. Moreover, a logical VA can start a run at any position,
 whereas VA starts from the beginning of the document. Although both models are

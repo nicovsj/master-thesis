@@ -5,18 +5,18 @@ To evaluate REQL, we compile logical VA into so-called \emph{extended VA}, a
 language. We use this model for the REQL evaluation algorithm used in \rematch,
 which makes one pass over the document and produces the resulting mappings with
 output-linear delay. This evaluation algorithm refines and improves the
-theoretical algorithm presented in \cite{FlorenzanoRUVV20} for evaluating
+theoretical algorithm presented in \citep{FlorenzanoRUVV20} for evaluating
 extended VA by taking care of the memory usage, simplifying the algorithm, and
 applying various optimizations presented in the previous sections.    
 
 \section{Extended VA}
 
-An \emph{extended variable-set automaton} (\(\EVA\))~\cite{FaginKRV15} is a
+An \emph{extended variable-set automaton} (\(\EVA\))~\citep{FaginKRV15} is a
 finite-state automaton extended with capture variables in a way analogous to
 logical VA. The difference is that reading and outputting variable markers can
 be done in a single transition\footnote{The name $\EVA$ is also used
-by~\cite{FlorenzanoRUVV20} for an automaton model outputting sets of markers.
-However, the eVA of~\cite{FlorenzanoRUVV20} require letter and variable
+by~\citep{FlorenzanoRUVV20} for an automaton model outputting sets of markers.
+However, the eVA of~\citep{FlorenzanoRUVV20} require letter and variable
 transitions to be separate, while we process them simultaneously. We use the
 same name for consistency.}  
 %This extension will considerably simplify the algorithm and justify the use of
@@ -360,7 +360,7 @@ $i$-th layer, which is the heaviest part of the algorithm. Therefore, it is
 crucial to perform $\textproc{UpdateSets}$ as efficiently as possible. For this,
 we use linked-lists and $\citer$ variables, which allows us to check in a single
 instruction whether $X'$ is already in $\cstateslists'$ or not. These tricks are
-standard in the implementation of RegEx engines~\cite{cox2007regular}. The
+standard in the implementation of RegEx engines~\citep{cox2007regular}. The
 novelty is then to incorporate these optimizations in a new evaluation algorithm
 for computing all matches.
 

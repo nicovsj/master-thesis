@@ -8,7 +8,7 @@ illustrate this, consider the expression
 \end{center}
 which looks for the keyword \texttt{sparql}, and then proceeds to capture the
 text until the first end of line symbol is reached. In a log file, such as the
-ones studied in \cite{AMRV16}, this roughly corresponds to capturing a SPARQL
+ones studied in \citep{AMRV16}, this roughly corresponds to capturing a SPARQL
 query. Notice that here Algorithm \ref{alg:evaluation} would store the position
 information for the opening of a variable \texttt{x} every time an \texttt{s}
 would be read. If the document we are reading has the text \texttt{sparx}, this
@@ -64,7 +64,7 @@ following algorithm, which we call \texttt{offset}.
 \subsection{Offset algorithm}
 In the implementation of REmatch, the \texttt{offset} optimization is done in
 the early stages of preprocessing the query. After the first parse of the
-expression, REmatch will build a eVA as described in \cite{FlorenzanoRUVV20},
+expression, REmatch will build a eVA as described in \citep{FlorenzanoRUVV20},
 namely each transition either opening or closing a single variable (referred to
 as a capture transition), or processing a symbol (called a reading transition).
 We also assume no  $\varepsilon$ transitions to be present in the automaton.
