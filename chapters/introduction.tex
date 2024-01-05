@@ -19,7 +19,7 @@ find the match whose starting position is the leftmost one, and from there they
 find the longest possible match. The process is then repeated  starting from the
 rightmost position of the previous match\footnote{Although RegEx engines follow
 different matching rules, the leftmost-longest rule is at the core of most
-modern engines. For a detailed discussion see \cite{friedl2006mastering}.}. For
+modern engines. For a detailed discussion see \citet{friedl2006mastering}.}. For
 example, if we want to evaluate the RegEx $\texttt{aa}$ over the document $a_0
 a_1 a_2 a_3$ (here the subindices are for referencing positions; the document
 consists of the letter $a$ repeated four times), a typical RegEx engine will
@@ -85,7 +85,7 @@ variables and the all-match semantics.
 
 \item We present \rematch, a RegEx system whose architecture allows evaluating
 REQL using output-linear delay. For this, we develop a new evaluation method
-that extends the theoretical algorithm of~\citep{FlorenzanoRUVV20} and
+that extends the theoretical algorithm of~\citet{FlorenzanoRUVV20} and
 incorporates new optimization techniques, allowing \rematch\ to compete with
 modern RegEx engines. 
 
