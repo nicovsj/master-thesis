@@ -18,7 +18,7 @@
     \sem{\cA}_d$ be a mapping of $\cA$ over $d$. We must show that there exists
     $1 \leq h \leq k$ such that there is a mapping $\mu' \in
     \sem{\cA}(d\sspan{i_h, j_h})$ that satisfies $\mu = \mu'_{+h}$. As we have
-    the mapping $\mu$ then there is an accepting run 
+    the mapping $\mu$, there is an accepting run 
     $$
     \rho \ = \ (q_0, \iota_0) \ \trans{o_1} \ (q_1, \iota_1) \ \trans{o_2} \ \cdots \ \trans{o_m} \ (q_m, \iota_m)
     $$ 
@@ -29,7 +29,7 @@
     consider the iteration inside the loop when $\ell = \iota_0$. We can be sure
     that in the iteration the function $\texttt{next}_\delta(S, a_\ell)$ does
     not return \texttt{ends} as true, because we know that $\rho$ is accepting
-    and it doesn't end at $\iota_0$. Therefore the variable $i$ does not change
+    and it does not end at $\iota_0$. Therefore the variable $i$ does not change
     its value and it must satisfy that $i \leq \iota_0$ at the end of this
     iteration. The same argument can be made for the iterations that follow,
     namely when $\ell$ takes the values $\iota_1, \ldots, \iota_{m-1}$, the
@@ -39,7 +39,7 @@
     because $\rho$ is accepting. Hence, $j$ will change its value to $\iota_m +
     1$ in this iteration, Thus $j < \iota_m$. Given that the mapping $\mu$
     cannot contain a zero-length span (otherwise $\cA$ would not constitute a
-    valid logical VA), then $i \leq \iota_0 < \iota_m \leq j$. In future
+    valid logical VA), it holds $i \leq \iota_0 < \iota_m \leq j$. In future
     iterations is easy to see that:
     \begin{enumerate}
         \item[(i)] the value of $j$ can only increase,
