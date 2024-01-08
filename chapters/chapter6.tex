@@ -12,7 +12,8 @@ real-world text corpora, and:
 \end{enumerate}
 We begin by describing the datasets and experiments used in the remainder of
 this section. All the data, queries and the implementation of \rematch, can be
-found at~\citep{REPO}.
+found in the official repository of the
+paper\footnote{\url{https://github.com/REmatchChile/REmatch-paper}}.
 
 
 \begin{figure}[t]
@@ -29,7 +30,7 @@ found at~\citep{REPO}.
 the thesis. An overview of the \rematch\ architecture can be found in
 Figure~\ref{fig:architecture}. Each module was described in a chapter of the
 thesis. The Rewriting module (Chapter~\ref{chpt:rewriting}) takes a REQL
-expression and converts it to a logical VA (lVA), which is used both by the
+expression and converts it to a logical VA, which is used both by the
 \textsf{DET} module (Chapter~\ref{chpt:evaluation}), and by the Filtering module
 (Chapter~\ref{chpt:filtering}). The latter processes the input document by
 splitting it into segments containing outputs, which are then passed to the
@@ -45,19 +46,21 @@ chapter.
 We use the following three real-world text corpora:
 \begin{enumerate}
 	\item \textsf{Literature.}  This is a combined corpus of collected works by
-	English literature greats: Mark Twain, William Shakespeare, and Charles
-	Dickens. We used texts provided by the Project
-	Gutenberg\footnote{\url{https://www.gutenberg.org/}}, and concatenated them
-	into a single document of size 50.7 MB and around 50 million characters.
+	Mark Twain, William Shakespeare, and Charles Dickens. We used texts provided
+	by Project Gutenberg\footnote{\url{https://www.gutenberg.org/}}, and
+	concatenated them into a single document of size 50.7 MB ( around 50 million
+	characters).
 	\item \textsf{DNA.} This dataset consists of DNA sequences. In particular,
 	we used the list of proteomes of the zebrafish organism that is provided by
-	the BLAST initiative~\citep{blast}. The combined size of this dataset is 38.5
-	MB and 38.5 million characters.
+	the BLAST
+	initiative\footnote{\url{https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html}}.
+	The combined size of this dataset is 38.5 MB (around 38 million characters).
 	\item \textsf{SPARQL.} Our final dataset consists of public query logs of
 	the (now defunct) British Museum SPARQL endpoint, as extracted and collected
-	by the Linked SPARQL Queries Dataset team \citep{LSQ}. We merged all the logs
-	into a single document weighing 71.1 MB, and consisting of roughly 76
-	million characters.
+	by the Linked SPARQL Queries Dataset
+	team\footnote{\url{http://aksw.github.io/LSQ/}}. We merged all the logs into
+	a single document weighing 71.1 MB, and consisting of roughly 76 million
+	characters.
 \end{enumerate}
 
 \subsection{The queries}
@@ -66,16 +69,16 @@ Our queries for each dataset are designed as follows:
 	\item \textsf{Literature.} Here we take a list of common English language
 	morphemes\footnote{A morpheme is the smallest meaningful constituent of a
 	linguistic expression, \url{https://en.wikipedia.org/wiki/Morpheme}.}, as
-	provided by \citep{morphemes}. We then specify queries that look for
+	provided by~\citet{morphemes}. We then specify queries that look for
 	2-grams~\citep{morphemes}, that is, two consecutive words each containing a
 	morpheme from our list (e.g. the first word ends in -ing, and the second one
 	in -er).
 	\item \textsf{DNA.} Motif detection is a key task in DNA
 	analysis\footnote{\url{https://en.wikipedia.org/wiki/Sequence_motif}}. In
 	this query set we select 100 DNA motifs from the Prosite
-	database~\citep{prosite} that commonly occur in our dataset. Our queries take
-	any such pair of motifs, and look for their occurrences in the proteomic
-	sequence separated by at most 20 characters.
+	database~\citep{prosite} that commonly occur in our dataset. Our queries
+	take any such pair of motifs, and look for their occurrences in the
+	proteomic sequence separated by at most 20 characters.
 	\item \textsf{SPARQL.} Our  logs have distinct SPARQL queries listed in each
 	line. For our expressions we fix two sets of up to three SPARQL
 	keywords~\citep{sparql11} (e.g., \texttt{WHERE} or \texttt{OPTIONAL}), and
@@ -84,20 +87,22 @@ Our queries for each dataset are designed as follows:
 \end{enumerate}
 
 For each dataset roughly 10,000 queries were generated. We then sample 150
-queries from each set and use these for our experiments. The queries were
-designed such they cover real world-scenarios where overlapping matches occur
-naturally. For instance, in the \textsf{DNA} dataset, a starting motif might be
-paired with multiple occurrences of an end motif, which is a natural use case
-for the all-match semantics, and something that is difficult to capture using
-modern RegEx engines, as shown in Table~\ref{tab:outputs}. 
+queries from each set and use these for our experiments, this in order to reduce
+the overall experimentation time to gather results. The queries were designed
+such they cover real world-scenarios where overlapping matches occur naturally.
+For instance, in the \textsf{DNA} dataset, a starting motif might be paired with
+multiple occurrences of an end motif, which is a natural use case for the
+all-match semantics, and something that is difficult to capture using modern
+RegEx engines, as shown in Table~\ref{tab:outputs}. 
 
 
 \subsection{How we ran the queries}
 All the experiments were run on a Apple M1 Pro 10 cores/10 threads machine with
 clock speed 2064 -- 3220 MHz and 16GB RAM. The operating system used was MacOS
-13.1.   Queries were run in succession, and each query was executed 5 times. We
-collected the average runtime and memory consumption of each query, and consider
-these in our measurements.
+13.1.   The \rematch\ implementation binary was compiled using \texttt{clang}
+with code optimization (\texttt{-O3} flag). Queries were run in succession, and
+each query was executed 5 times. We collected the average runtime and memory
+consumption of each query, and consider these in our measurements.
 
 \section{What do our optimizations do?}\label{ss:internal} Throughout the thesis
 we described a series of optimizations which define the \rematch\ system
@@ -113,15 +118,15 @@ the performance of \rematch.
 
 
 
-For this, we run the experiments described in section~\ref{ss:setup}, and test
+For this, we run the experiments described in Section~\ref{ss:setup}, and test
 the following versions of \rematch:
 \begin{itemize}
 	\item \textsc{Naive}, which is just the implementation of
 	Algorithm~\ref{alg:evaluation}.
 	\item \textsc{Node Manager}, which adds the $\ds$ module to discard unusable
 	nodes as soon as possible (Chapter~\ref{chpt:output}).
-	\item \textsc{Next Index}, which uses a bit array for ASCII characters in a
-	transition for quick access (Chapter~\ref{chpt:evaluation}).
+	\item \textsc{Next Index}, which uses an ASCII character table in the
+	automaton transitions for quick access (Chapter~\ref{chpt:evaluation}).
 	\item \textsc{Offset}, which postpones storing the (potential) output
 	information as much as possible (Chapter~\ref{chpt:rewriting}).
 	\item \textsc{Early Output}, which outputs results as soon as they are
@@ -137,8 +142,8 @@ example, the \textsc{Offset} version of the algorithm includes both the
 optimizations are designed to help the algorithm in various aspects, we test
 their impact along three dimensions: (i) time; (ii) memory consumption; and
 (iii) time needed to return the first output. Boxplots for time and first output
-time are presented in Figure~\ref{fig-optimizations}, while
-Table~\ref{tab-memory} shows the average memory consumption.
+time are presented in Figures \ref{fig:opt-time} and \ref{fig-optimizations},
+while Table~\ref{tab-memory} shows the average memory consumption.
 
 
 \begin{figure}[t]
@@ -157,15 +162,16 @@ Table~\ref{tab-memory} shows the average memory consumption.
 	\label{fig-optimizations}
 \end{figure}
 
-
+% TODO: Gonzalo says that Offset and Early Output worsen things. Asks if we
+% tried to run Light Search without them.
 
 
 \subsection{Discussion}
 As we can observe (Figure~\ref{fig:opt-time}), among all three datasets, adding
 the \textsc{Node Manager} module makes the runtime of our experiments drop
 noticeably, however the real savings come from the \textsc{Next index}
-optimization, which allows us check whether a character triggers an automaton
-transition instantaneously. The \textsc{Offset} and \textsc{Light Search}
+optimization, which allows us to instantaneously check whether a character
+triggers an automaton transition. The \textsc{Offset} and \textsc{Light Search}
 version reduces the runtime in a meaningful manner as well. Concerning memory
 consumption (Table~\ref{tab-memory}), \textsc{Node Manager} drastically reduces
 the memory consumption compared to the \textsc{Naive} version. Due to storing
@@ -183,20 +189,16 @@ algorithm, denoted \textsc{Naive}, by orders of magnitude.
 
 
 \begin{table}[t]
-	\begin{tabular}{l|ccc}
+	\begin{tabular}{l|rrr}
 		                      & \textsf{DNA} & \textsf{Literature} &
 		                      \textsf{SPARQL} \\
 		\hline
-		\textsc{Naive}        & 823.3        & 379.9               & 1229.69
+		\textsc{Naive}        & 823.30        & 379.90               & 1229.69
 		\\
-		\textsc{Node Manager} & 6.08         & 2.1                 & 8.75
-		\\
-		\textsc{Next Index}   & 18.32        & 2.33                & 10.1
-		\\
-		\textsc{Offset}       & 18.66        & 2.32                & 7.78
-		\\
-		\textsc{Early Output} & 16.09        & 2.21                & 3.64
-		\\
+		\textsc{Node Manager} & 6.08         & 2.10                 & 8.75 \\
+		\textsc{Next Index}   & 18.32        & 2.33                & 10.10 \\
+		\textsc{Offset}       & 18.66        & 2.32                & 7.78 \\
+		\textsc{Early Output} & 16.09        & 2.21                & 3.64 \\
 		\textsc{Light Search} & 23.36        & 2.09                & 3.87
 	\end{tabular}
 	\caption{Average memory usage of \rematch\ versions (in MB).}
@@ -210,7 +212,7 @@ algorithm, denoted \textsc{Naive}, by orders of magnitude.
 Here we do a thorough analysis of how \rematch\ compares to classic RegEx
 processing libraries. For this, we tried to be thorough, and include both
 engines that can approximate the all-match semantics using look-around
-operators, and the ones that cannot. In our comparison the following engines are
+operators, and others that cannot. In our comparison the following engines are
 used:
 \begin{itemize}
 	\item \textsf{PCRE}~\citep{pcre} version: 8.45;
@@ -234,12 +236,9 @@ Table~\ref{tab:outputs}. Here we compare only in terms of time. The memory
 consumption was relatively stable along all the engines, with \rematch\ using
 the most memory, but only by a negligible amount (kilobytes in our experiments),
 which is justified by the extra bookkeeping done by \rematch\ in order to
-retrieve all the matches. The memory consumption was relatively stable along all
-the engines, with \rematch\ generally using slightly more memory, which is
-justified by the extra bookkeeping needed to retrieve all the matches. \rematch\
-had some spikes in memory usage for the \textsf{DNA} dataset, and
-\textsf{PCRE2} in the \textsf{SPARQL} dataset, but the document size still
-dominated memory usage significantly.
+retrieve all the matches.  \rematch\ had some spikes in memory usage for the
+\textsf{DNA} dataset, and \textsf{PCRE2} in the \textsf{SPARQL} dataset, but the
+document size still dominated memory usage significantly.
 
 In this discussion, it is essential to recall that REmatch is incomparable with
 standard RegEx engines, given that it uses a different query language for always
@@ -285,18 +284,17 @@ to the standard and highly optimized RegEx engines.
 
 
 \subsection{Discussion}
-As we can see, \rematch\ shows good performance as compared to other engines. On
+As we can see from Figure~\ref{fig:comparison}, \rematch\ shows good performance as compared to other engines. On
 the \textsf{Literature} dataset, \rematch\ is bested only by \textsf{RE2}, which
 does not look for all the outputs. On the \textsf{DNA} dataset \rematch\ is a
 close third, bested only by \textsf{RE2} and \textsf{PCRE2} by a tiny margin.
-When it comes to \textsf{SPARQL} the story is similar. We remark that in this
+In regards to \textsf{SPARQL}, the analysis is similar. We remark that in this
 dataset \textsf{TRE} throws an error on every query. Comparing the number of
 outputs, in Table~\ref{tab:outputs} we can observe that \rematch\ generally does
-more work compared to other engines. This is particularly evident when
-comparing to engines not using look-around operators (\textsf{RE2} and
-\textsf{TRE}). Even for the engines with look-around supported, we sometimes
-cannot capture all the outputs (for instance when two nested matches start at
-the same position), as witnessed in Table~\ref{tab:outputs}. Overall, the
-experiments illustrate that the task of encountering \emph{all} the outputs,
-including overlapping ones, can be done with minimal overhead when comparing
-with classical RegEx matching.
+more work compared to other engines. This is particularly evident when comparing
+to engines not using look-around operators (\textsf{RE2} and \textsf{TRE}). Even
+for the engines with look-around supported, we sometimes cannot capture all the
+outputs (for instance when two nested matches start at the same position), as
+witnessed in Table~\ref{tab:outputs}. Overall, the experiments illustrate that
+the task of encountering \emph{all} the outputs, including overlapping ones, can
+be done with minimal overhead when comparing with classical RegEx matching.
