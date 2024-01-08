@@ -168,6 +168,8 @@ $\mu_2$ and $\mu_3$ is represented only once.
 	\vspace{-4mm}
 \end{figure}
 
+% TODO: Gonzalo wants us to explain ECS construction
+
 %\paragraph*{Node manager} The key step when evaluating a REQL query over a
 %document is building the ECS which encodes all the outputs. Naively building
 %the ECS would require allocating the memory for each node being added, which is
@@ -273,3 +275,6 @@ user as soon as possible, similarly as pipelined evaluation in databases; and
 saving storage space. This optimization is highly effective in decreasing the
 memory usage and decreasing the time to deliver the first output (see
 Chapter~\ref{chpt:experiments}).
+
+% TODO: Gonzalo says that early output is not understood well. We should give an
+% example.
