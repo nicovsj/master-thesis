@@ -1,22 +1,22 @@
 % !TeX root = ../Thesis.tex
 
-In some cases, opening a variable can be postponed in order to avoid the
-storage of the information about runs that will not result in an output. To
-illustrate this, consider the expression
+In some cases, opening a variable can be postponed in order to avoid the storage
+of the information about runs that will not result in an output. To illustrate
+this, consider the expression
 \begin{center}
 	\texttt{!x\{sparql[\textasciicircum \textbackslash n]*\}\textbackslash n}
 \end{center}
 which looks for the keyword \texttt{sparql}, and then proceeds to capture the
 text until the first end of line symbol is reached. In a log file, such as the
-ones studied in \citep{AMRV16}, this roughly corresponds to capturing a SPARQL
+ones studied in~\citet{AMRV16}, this roughly corresponds to capturing a SPARQL
 query. Notice that here Algorithm \ref{alg:evaluation} would store the position
 information for the opening of a variable \texttt{x} every time an \texttt{s}
 would be read. If the document we are reading has the text \texttt{sparx}, this
 run would then be extended for three more steps, although it will eventually be
 abandoned, and not result in any outputs. Given the node management required
 when changing the state of the ECS structure, this can bring a significant
-overhead to evaluation. In cases such as these, we can actually postpone (i.e.
-offset) the opening of the variable \texttt{x}. by proceeding as follows: (i)
+overhead to evaluation. In cases such as these, we can actually postpone (i.e.,
+offset) the opening of the variable \texttt{x} by proceeding as follows: (i)
 first read the word \texttt{sparql}; (ii) now open a variable \texttt{x}, but
 remember that it was actually opened six symbols before (i.e. it has an offset
 6); (iii) proceed until the end of the expression. Then, when reconstructing the
@@ -28,7 +28,7 @@ above as:
 	\texttt{sparql!x\{$^{-6}$[\textasciicircum \textbackslash n]*\}
 	\textbackslash n} 
 \end{center}
-In order to signal that when opened, the variable \texttt{x} actually stores
+in order to signal that when opened, the variable \texttt{x} actually stores
 characters starting six positions before the guarded position.
 
 \subsection{Offset logical VA} 
@@ -53,21 +53,20 @@ transitions of $\cAoff$. Therefore, the semantics of $\sem{\cAoff}_d$ of
 $\cAoff$ over a document $d$ is defined as the set of all $\mu^\rho$ where
 $\rho$ is an accepting run of $\cAoff$ over $d$.
 
-Given the way Algorithm \ref*{alg:evaluation} works. It is desirable to be able
+Given the way Algorithm \ref*{alg:evaluation} works, it is desirable to be able
 to construct an offset logical VA $\cAoff$ from an initial logical VA $\cA$ such
-that: (i) the semantics are preserved, i.e. $\sem{\cAoff}_d = \sem{\cA}_d$ and
-(ii) the offset function $\tau$ of $\cAoff$ is optimal in a way to maximize the
-offsets for the variable markers, so that the decision of changing the state of
-the ECS is postponed while reading the document. In REmatch, this is done by the
-following algorithm, which we call \texttt{offset}.
+that: (i) the semantics are preserved, i.e., $\sem{\cAoff}_d = \sem{\cA}_d$, and
+(ii) the offset function $\tau$ of $\cAoff$ is optimal in the sense of
+maximizing the absolute values of the offsets for the variable markers, so that
+the decision of changing the state of the ECS is postponed as much as possible
+while reading the document. In REmatch, this is done by the following algorithm,
+which we call \texttt{offset}.
 
 \subsection{Offset algorithm}
 In the implementation of REmatch, the \texttt{offset} optimization is done in
 the early stages of preprocessing the query. After the first parse of the
-expression, REmatch will build a eVA as described in \citep{FlorenzanoRUVV20},
-namely each transition either opening or closing a single variable (referred to
-as a capture transition), or processing a symbol (called a reading transition).
-We also assume no  $\varepsilon$ transitions to be present in the automaton.
+expression, REmatch will build an extended variable automaton (eVA) as described
+in Section \ref{sec:extendedVA}.
 
 First, for each variable opening we build a list of all the transitions that
 open this variable, and we do the same for each variable closing. The variable
@@ -89,12 +88,12 @@ every transition $p\ \longtrans{\Open{x}}\ q$ appearing in \texttt{captureList}
 associated with $\Open{x}$:
 \begin{enumerate}
 	\item $q$ is not a final state;
-	\item There are no transition of the form $q\ \longtrans{\Open{y}}\ r$, or
+	\item There are no transitions of the form $q\ \longtrans{\Open{y}}\ r$, or
 	of the form $p'\ \longtrans{v}\ q$, with $v$ a variable marker, in the
-	automaton;
+	automaton; \label{item:offset-cond-2}
 	\item There is at least one transition of the form $q\ \longtrans{a}\ r$;
-	\item For all transitions $q\ \longtrans{a}\ r$, $q$ can not be reachable
-	from $r$; and
+	\item For all transitions $q\ \longtrans{a}\ r$, $q$ can not be reached from
+	$r$; and
 	\item For any other transition $p'\ \longtrans{\Open{x}}\ q'$, if we take
 	any $q\ \longtrans{a}\ r$, then $q'$ is not reachable from $r$.
 \end{enumerate}
@@ -126,8 +125,12 @@ $$q_0\ \longtrans{\Open{x}}\ q_1\ \longtrans{a}\ q_2\ \longtrans{\Close{x}}\
 q_3\ \longtrans{b}\ q4$$ If we were to first offset the $\Open{x}$ variable
 marker, this would result in:
 $$q_0\ \longtrans{a}\ q_1\ \longtrans{\Open{x}^{-1}}\ q_2\
-\longtrans{\Close{x}}\ q_3\ \longtrans{b}\ q4$$ and $\Close{x}$ could not be
-offset due to condition (2) above. On the other hand, processing the variables
-in reverse topological order results in:
+\longtrans{\Close{x}}\ q_3\ \longtrans{b}\ q4.$$ Notice that $\Open{x}$ cannot
+be not be further offset due to condition (ii) above. Then, if we offset
+$\Close{x}$ we get: $$q_0\ \longtrans{a}\ q_1\ \longtrans{\Open{x}^{-1}}\ q_2\
+\longtrans{b}\ q_3\ \longtrans{\Close{x}^{-1}}\ q4$$ Which is suboptimal as
+$\Open{x}^{-1}$ can still be offset from its position. If instead the variables
+are processed in reverse topological order, this results in:
 $$q_0\ \longtrans{a}\ q_1\ \longtrans{b}\ q_2\ \longtrans{\Open{x}^{-2}}\ q_3\
-\longtrans{\Close{x}^{-1}}\ q4$$.
+\longtrans{\Close{x}^{-1}}\ q4$$ which is better in terms of the maximization of
+the absolute values of the offsets.
