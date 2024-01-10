@@ -130,13 +130,13 @@ time. %, for evaluating $\cA$.
 	\end{tikzpicture}
 \end{center}
 Here we draw an edge $q \ \longtrans{a / S} \ q'$ to denote a transition from
-$q$ to~$q'$ that outputs $S$ when reading a letter $a$, and use $*$ to denote any
-letter. Intuitively, we have moved transitions with variable markers ``forward''
-if we compare $\cE_0$ with $\cA_0$.  For instance, $\cA_0$ had transitions $0
-\trans{\Open{x}} 1 \trans{t} 2$, but instead $\cE_0$ has a  direct transition $0
-\longtrans{t/\Open{x}} 1$.  Since an extended VA needs to consume the entire
-document, we add self-loops in the initial and the final state; for instance $4
-\longtrans{t/\Close{x}} 5$. Also note that the transition $0
+$q$ to~$q'$ that outputs $S$ when reading a letter $a$, and use $*$ to denote
+any letter. Intuitively, we have moved transitions with variable markers
+``forward'' if we compare $\cE_0$ with $\cA_0$.  For instance, $\cA_0$ had
+transitions $0 \trans{\Open{x}} 1 \trans{t} 2$, but instead $\cE_0$ has a direct
+transition $0 \longtrans{t/\Open{x}} 1$.  Since an extended VA needs to consume
+the entire document, we add self-loops in the initial and the final state; for
+instance $4 \longtrans{t/\Close{x}} 5$. Also note that the transition $0
 \longtrans{*/\emptyset} 0$ closes the variable \texttt{x} before the character
 (\textsf{EOF} or any other) is consumed.
 \end{example}
@@ -178,15 +178,17 @@ without duplicates. Similar behavior can happen for eVAs coming from REQL
 queries with quantifiers or alternations. 
 
 To remove duplicate runs from $\EVA$s, we use a subclass called
-\emph{deterministic} $\EVA$s. We say that an $\EVA$ $\cE$ is \emph{deterministic}
-if its transition relation $\delta$ satisfies that for every two transitions
-$(q, a_1, S_1, q_1') \in \delta$ and $(q, a_2, S_2, q_2') \in \delta$, if $(a_1,
-S_1) = (a_2, S_2)$, then $q_1' = q_2'$. In other words, given a state $q$, the
-next state is determined by the pair $(a, S)$. The reader can check that $\cE_0$
-is deterministic but $\cE_0'$ is not. 
-
-A deterministic $\EVA$ ensures that for every document and output sequence, %TODO: proof
-there is at most one accepting run. This correspondence is crucial for our
+\emph{deterministic} $\EVA$s. We say that an $\EVA$ $\cE$ is
+\emph{deterministic} if its transition relation $\delta$ satisfies that for
+every two transitions $(q, a_1, S_1, q_1') \in \delta$ and $(q, a_2, S_2, q_2')
+\in \delta$, if $(a_1, S_1) = (a_2, S_2)$, then $q_1' = q_2'$. In other words,
+given a state $q$, the next state is determined by the pair $(a, S)$. The reader
+can check that $\cE_0$ is deterministic but $\cE_0'$ is not. 
+\begin{proposition} \label{prop:determinization} Let $\cE^{\odet}$ be a
+	deterministic $\EVA$. Then, for every document $d$ and output sequence $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$,
+	there is at most one accepting run $\rho$ of $\cE^{\odet}$ over $d$ such that $\oout(\rho) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$.
+\end{proposition}
+Proposition \ref*{prop:determinization} (proof in Appendix \ref{app:determinization}) is crucial for our
 evaluation algorithm, given that we can simulate runs and construct the output,
 without worrying about duplicates. Fortunately, we can always ``determinize'' a
 non-deterministic $\EVA$ $\cE = (Q, q_0, F, \delta)$ by using a subset
@@ -204,10 +206,12 @@ $$
 %\, (q, a, S, q') \in \delta\}. \end{align*} where $2^Q$ is the powerset of $Q$,
 %namely, all subsets of $Q$.
 One can check that $\cE$ and $\cE^{\odet}$ are equivalent (i.e., they define the
-same output for every document), and that $\cE^{\odet}$ is deterministic. % TODO: proof
+same output for every document), and that $\cE^{\odet}$ is deterministic.
+% TODO: proof
 
-An inconvenience of $\cE^{\odet}$ is that its size can be exponential in $|\cE|$.
-Fortunately, for the evaluation algorithm it is not necessary to construct % TODO: reference
+An inconvenience of $\cE^{\odet}$ is that its size can be exponential in
+$|\cE|$. Fortunately, for the evaluation algorithm it is not necessary to
+construct % TODO: reference
 entire $\cE^{\odet}$. Instead, we can start from the initial set $\{q_0\}$ and
 traverse only the transitions and states needed by the next letter. Each time
 that we need a new state or transitions of $\cE^{\odet}$, we use $\cE$ to build
@@ -273,8 +277,8 @@ variables and data structures used by the algorithm.
 Two main components used by the algorithm are the node manager $\ds$, introduced
 in Chapter~\ref{chpt:output}, and the determinization module $\cdet$, introduced
 above. In addition, we use \emph{state-sets} constructed by $\cdet$,
-\emph{set-lists} that store state-sets, and \emph{nodes} created and operated
-by $\ds$. We introduced nodes $\coid$ in Chapter~\ref{chpt:output}. %Next, we
+\emph{set-lists} that store state-sets, and \emph{nodes} created and operated by
+$\ds$. We introduced nodes $\coid$ in Chapter~\ref{chpt:output}. %Next, we
 explain how state-sets and set-lists work.
 
 % TODO: Difference between evas and transducers
@@ -321,13 +325,13 @@ output node (line 19). Intuitively, no iterations have accessed $X_0$ yet, and
 the $\cE^{\odet}$-run at $X_0$ only has the empty output.
 
 The evaluation algorithm processes the document $b_0 \ldots b_{n}$ symbol by
-symbol, from $i=0$ to $n$ (line 4). During the $i$-th iteration,
-$\cstateslists$ keeps all state-sets $X$ that can be reached by runs reading
-$b_0\ldots b_{i-1}$, and $X.\coid$ is the node storing all outputs of these runs.
-Instead, $\cstateslists'$ will contain the new state-sets after reading the new
-letter $b_i$. Intuitively, to build $\cstateslists'$ from $\cstateslists$ we
-fire all state-sets $X$ in $\cstateslists$ one-by-one (line 5) by calling the
-method $\cdet.\texttt{next}(X,b_i)$ with symbol $b_i$ (line 6). As explained
+symbol, from $i=0$ to $n$ (line 4). During the $i$-th iteration, $\cstateslists$
+keeps all state-sets $X$ that can be reached by runs reading $b_0\ldots
+b_{i-1}$, and $X.\coid$ is the node storing all outputs of these runs. Instead,
+$\cstateslists'$ will contain the new state-sets after reading the new letter
+$b_i$. Intuitively, to build $\cstateslists'$ from $\cstateslists$ we fire all
+state-sets $X$ in $\cstateslists$ one-by-one (line 5) by calling the method
+$\cdet.\texttt{next}(X,b_i)$ with symbol $b_i$ (line 6). As explained
 previously, this method gives a list $\ell$ of pairs $(S, X')$, where there is a
 transition $(X, b_i, S, X') \in \delta^{\odet}$. Then, if $(S, X') \in \ell$, we
 must extend the output sequences in $X.\coid$ with $(S, i)$, and store them in
