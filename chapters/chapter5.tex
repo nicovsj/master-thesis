@@ -30,9 +30,13 @@ consisting of transitions of the form $(q, a, S, q')$ where $q, q' \in Q$, $a
 $S=\{\Open{x},\Close{y}\}$). The meaning behind the transition $(q, a, S, q')$
 is that when the automaton is in the state $q$ and reads the $i$-th letter $a_i
 = a$, it switches to state $q'$ and outputs $(S, i)$, where $S$ is the set of
-variables that are opened and closed \emph{before} reading the $i$-th letter. In
-particular, when $S = \emptyset$, the automaton changes the state and nothing is
-output.
+variables that are opened and closed \emph{before} reading the $i$-th letter.
+Intuitively, in a logical VA one could have a run with many contiguous variable
+transitions, followed by a letter transition. In an eVA, this would translate to
+a single transition, where $S$ holds all the variable markers from the
+contiguous variable transitions, and $a$ is the letter from the letter
+transition. In particular, when $S = \emptyset$, the automaton changes the state
+and nothing is output.
 % TODO: Gonzalo didn't understand this part Note that the special symbol
 %$\osymbol$ is used to simulate opening variables before reading the first
 %letter of the document. We define the set $\Var(\cE)$ as the set of all
@@ -185,17 +189,20 @@ every two transitions $(q, a_1, S_1, q_1') \in \delta$ and $(q, a_2, S_2, q_2')
 given a state $q$, the next state is determined by the pair $(a, S)$. The reader
 can check that $\cE_0$ is deterministic but $\cE_0'$ is not. 
 \begin{proposition} \label{prop:determinization} Let $\cE^{\odet}$ be a
-	deterministic $\EVA$. Then, for every document $d$ and output sequence $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$,
-	there is at most one accepting run $\rho$ of $\cE^{\odet}$ over $d$ such that $\oout(\rho) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$.
+	deterministic $\EVA$. Then, for every document $d$ and output sequence
+	$(S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$, there is at most one accepting run
+	$\rho$ of $\cE^{\odet}$ over $d$ such that $\oout(\rho) = (S_1, i_1)\cdot
+	\cdots \cdot(S_n, i_n)$.
 \end{proposition}
-Proposition \ref*{prop:determinization} (proof in Appendix \ref{app:determinization}) is crucial for our
-evaluation algorithm, given that we can simulate runs and construct the output,
-without worrying about duplicates. Fortunately, we can always ``determinize'' a
-non-deterministic $\EVA$ $\cE = (Q, q_0, F, \delta)$ by using a subset
-construction, similar to the standard determinization procedure for NFAs. More
-precisely, we define $\cE^{\odet} = (Q^{\odet}, q_0^{\odet}, F^{\odet},
-\delta^{\odet})$ such that: $Q^{\odet} = 2^Q$, $q_0^{\odet} = \{q_0\}$,
-$F^{\odet} = \{X \mid X \cap F \neq \emptyset\}$, and:
+Proposition \ref*{prop:determinization} (proof in Appendix
+\ref{app:determinization}) is crucial for our evaluation algorithm, given that
+we can simulate runs and construct the output, without worrying about
+duplicates. Fortunately, we can always ``determinize'' a non-deterministic
+$\EVA$ $\cE = (Q, q_0, F, \delta)$ by using a subset construction, similar to
+the standard determinization procedure for NFAs. More precisely, we define
+$\cE^{\odet} = (Q^{\odet}, q_0^{\odet}, F^{\odet}, \delta^{\odet})$ such that:
+$Q^{\odet} = 2^Q$, $q_0^{\odet} = \{q_0\}$, $F^{\odet} = \{X \mid X \cap F \neq
+\emptyset\}$, and:
 $$
 	\delta^{\odet} = \{(X, a, S, X') \mid \forall q' \in X'. \, \exists q \in X. \, (q, a, S, q') \in \delta\}.
 $$
