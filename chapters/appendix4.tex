@@ -1,0 +1,13 @@
+Let $\cE^{\odet}$ be a deterministic eVA. Take an output sequence \mbox{$(S_1, i_1)\cdot \ldots \cdot (S_m, i_m)$} and a document $d = a_0\ldots a_n$ and assume that $(S_1, i_1)\cdot \ldots \cdot (S_n, i_n) \in \semseq{\cE}_d$ (the other case is trivial). Then there must be at least one accepting run $\rho$ of $\cE^{\odet}$ over $d$:
+$$
+\rho \ = \ q_0 \ \longtrans{b_0 / R_0} \ q_1 \ \longtrans{b_1 / R_1} \ q_2 \ \longtrans{b_2 / R_2} \ \ldots \ \ q_{n} \longtrans{b_{m} / R_n} \ q_{n+1}
+$$
+such that $\oout(\rho) = (S_1, i_1)\cdot \cdots \cdot (S_m, i_m)$. Suppose that there exists another accepting run $\rho'$ of $\cE^{\odet}$:
+$$
+\rho' \ = \ p_0 \ \longtrans{b_0 / T_0} \ q_1 \ \longtrans{b_1 / T_1} \ p_2 \ \longtrans{b_2 / T_2} \ \ldots \ \ p_{\ell} \longtrans{b_n / T_n} \ p_{n+1}
+$$
+over $d$ with $\rho' \neq \rho$ and $\oout(\rho') = \oout(\rho)$. First, notice that 
+\begin{equation} \label{eq:outseq}
+    \oout(R_0, 0)\cdot \ldots \cdot \oout(R_n, n) = \oout(T_0, 0)\cdot \ldots \cdot \oout(T_n, n) = (S_1, i_1)\cdot \ldots \cdot (S_m, i_m),
+\end{equation}
+this forces $R_j = T_j$ for $0 \leq j \leq n$, otherwise if there exists $j$ such that $R_j \neq T_j$ then $\oout(R_j, j) \neq \oout(T_j, j)$, which means that $R_j$ and $T_j$ cannot be empty at the same time and thus, at least one of $(R_j, j)$ or $(T_j, j)$ must be present in the output sequence, but that contradicts \eqref{eq:outseq} as the sequences must be ever increasing on the positions of the document. Next, Given that $\rho'$ and $\rho$ are not equal and $q_0 = p_0$, it must hold that there is a number $0 \leq j \leq \ m$ such that $q_j = p_j$ and $q_{j+1} \neq p_{j+1}$. Then, both $(q_j, b_j, R_j, q_{j+1})$ and $(q_j, b_j, R_j, p_{j+1})$ are transitions of $\cE^\odet$, but this contradicts the fact that $\cE^{\odet}$ is deterministic, and thus, $\rho' = \rho$, and $\rho$ is unique.
