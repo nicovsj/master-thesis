@@ -28,7 +28,7 @@ whose content is the substring of $d$ from position $i$ to position $j-1$. We
 denote this substring by $d(s)$ or $d([i,j\rangle)$. For instance,
 $d_1([0,4\rangle) = \texttt{that}$, since this is the content of the string $d$
 in positions 0 through~3.
-%
+
 Notice that if $i = j$, then $d(s) = d(i,j) = \varepsilon$, the empty string.
 Given two spans $s_1 = [i_1, j_1\rangle$ and $s_2 = [i_2, j_2\rangle$ such that
 $j_1 = i_2$, we define their \emph{concatenation} as $s_1 \cdot s_2=[i_1,
@@ -165,9 +165,10 @@ domain is the empty set).
 		\exists (s_1, \mu_1) \in \sempd{\texttt{e1}} \ \exists (s_2, \mu_2) \in \sempd{\texttt{e2}}: \\
 		& \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; s = s_1 \cdot s_2 \text{ and } \mu = \mu_1 \cup \mu_2 \}\\
 		\sempd{\texttt{e1|e2}} & \ = \  \sempd{\texttt{e1}} \cup \sempd{\texttt{e2}}\\
-		\sempd{\texttt{e*}} & \ = \  \bigcup_{h\geq 0}\sempd{\texttt{e}^h} \\
+		\sempd{\texttt{e*}} & \ = \  {\textstyle\bigcup}_{h\geq 0}\sempd{\texttt{e}^h} \quad \text{where } \sempd{\texttt{e}^0} = \{([i,i\rangle, \emptyset) \mid 0 \leq i \leq |d|\}\ \\
+		& \qquad\qquad\qquad\qquad \text{ and } \sempd{\texttt{e}^{h+1}} = \sempd{\texttt{e}(\texttt{e}^h)} \text{ for } h \geq 0 \\
 		\sempd{\texttt{e+}} & \ = \  \sempd{\texttt{e}\, \texttt{(e*)}} \\
-		\sempd{\texttt{e?}} & \ = \  \sempd{\texttt{e}} \cup \{ ([i,i\rangle, \emptyset) \mid 0 \leq i \leq |d| \}\\
+		\sempd{\texttt{e?}} & \ = \  \sempd{\texttt{e}^0} \cup \sempd{\texttt{e}} \\
 		\sempd{\texttt{e\{n,m\}}} & \ = \  \sempd{\texttt{e}^n(\texttt{e?})^{m-n}}
 	\end{align*}
 	\vspace*{-10pt}
