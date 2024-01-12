@@ -266,15 +266,15 @@ Note again that $\ds$ allows enumerating the outputs from a node at any point
 without further preprocessing. This fact is crucial for the optimization that we
 call \emph{early output enumeration}. Specifically, when evaluating a logical VA
 over a document, we can often detect whether we reach a final state before the
-entire document is read completely (for details, see
-Chapter~\ref{chpt:evaluation}). In essence, this means that we can provide
-certain outputs to the user at this point before continuing to construct the ECS
-in its entirety. The benefits are twofold: (i) the outputs are delivered to the
-user as soon as possible, similarly as pipelined evaluation in databases; and
-(ii) once we enumerate these outputs, we can delete the unused nodes, thus
-saving storage space. This optimization is highly effective in decreasing the
-memory usage and decreasing the time to deliver the first output (see
+entire document is read completely. For instance, consider the automaton in
+Example \ref{example:logicalVA}. In terms of its evaluation, the final state
+will be constantly reached for each time the substring \texttt{that} is
+encountered in a document (refer to Chapter~\ref{chpt:evaluation} for more
+details). In essence, this means that we can provide certain outputs to the user
+at this point before continuing to construct the ECS in its entirety. The
+benefits are twofold: (i) the outputs are delivered to the user as soon as
+possible, similarly as pipelined evaluation in databases; and (ii) once we
+enumerate these outputs, we can delete the unused nodes, thus saving storage
+space. This optimization is highly effective in decreasing the memory usage and
+decreasing the time to deliver the first output (see
 Chapter~\ref{chpt:experiments}).
-
-% TODO: Gonzalo says that early output is not understood well. We should give an
-% example.
