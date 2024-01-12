@@ -473,12 +473,16 @@ sequences in $X'.\coid$ with the ones in $\coid'$ (lines~35-36).
 For the correctness of $\textproc{UpdateSets}$, we cannot reach any state-set
 $X$ in two consecutive iterations (i.e., both in the $(i-1)$- and $i$-th
 iteration for some $i$). Otherwise, we could use $X.\coid$ by reading and
-updating it simultaneously, possibly erasing its content. For this reason,
-during the rewriting module we duplicate the logical $\VA$, alternating between
-even and odd positions. This construction forces that, at this stage, we cannot
-reach any state-set $X$ in two consecutive iterations as needed.
+updating it simultaneously, possibly erasing its content. For example, suppose
+that in the $(i-1)$-th iteration of the algorithm there are two set-lists
+holding different set-states, $X_1$ and $X_2$. If in the $i$-th iteration, $X_1$
+transitions into $X_2$, and $X_2$ transitions into another state $X'$, then
+$X_2.n$ would be read and written in the same step, which can be dangerous if
+the writing happens before the reading.   For this reason, during the rewriting
+module we duplicate the logical $\VA$, alternating between even and odd
+positions. This construction forces that, at this stage, we cannot reach any
+state-set $X$ in two consecutive iterations as needed.
 
-%TODO: Gonzalo doesn't understand what problem could occur
 
 $\textproc{UpdateSets}$ passes and updates the outputs from the $(i-1)$- to the
 $i$-th layer, which is the heaviest part of the algorithm. Therefore, it is
