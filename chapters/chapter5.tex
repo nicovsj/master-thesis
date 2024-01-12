@@ -8,7 +8,7 @@ mappings with output-linear delay. This evaluation algorithm refines and
 improves the theoretical algorithm presented in \citet{FlorenzanoRUVV20} for
 evaluating extended VA by taking care of the memory usage, simplifying the
 algorithm, and applying various optimizations presented in the previous
-sections.    
+sections.
 
 \section{Extended VA}
 
@@ -19,7 +19,7 @@ be done in a single transition\footnote{The name $\EVA$ is also used
 by~\citet{FlorenzanoRUVV20} for an automaton model outputting sets of markers.
 However, the eVA of~\citet{FlorenzanoRUVV20} require letter and variable
 transitions to be separate, while we process them simultaneously. We use the
-same name for simplicity.}  
+same name for simplicity.}
 %This extension will considerably simplify the algorithm and justify the use of
 %a new model, more closed to the evaluation strategy than to the REQL query.
 Formally, an $\EVA$ $\cE$ is a tuple \((Q, q_0, F, \delta)\), where \(Q\) is a
@@ -43,12 +43,12 @@ and nothing is output.
 %variables $x$ that are mentioned in some transition of $\cE$.
 
 The fact that a transition can open or close multiple variables at the same time
-	allows us to handle nested variables (e.g. \texttt{!x\{!y\{a\}\}}) in a
-	single automaton transition. Furthermore, the $\osymbol$ symbol is used as a
-	special input to denote the end of a document (i.e., an End Of File, or
-	\texttt{EOF}). This will be useful in the run of an $\EVA$ for outputting
-	spans $[i, j\rangle$ over a document of size $n$, where $i$ and $j$ range
-	from $0$ to $n$ (i.e., we need $n+1$ possible positions).
+allows us to handle nested variables (e.g. \texttt{!x\{!y\{a\}\}}) in a single
+automaton transition. Furthermore, the $\osymbol$ symbol is used as a special
+input to denote the end of a document (i.e., an End Of File, or \texttt{EOF}).
+This will be useful in the run of an $\EVA$ for outputting spans $[i, j\rangle$
+over a document of size $n$, where $i$ and $j$ range from $0$ to $n$ (i.e., we
+need $n+1$ possible positions).
 
 Next we define how an $\EVA$ produces outputs. A \emph{run} $\rho$ of $\cE$ over
 a document $d = a_0 \cdots a_{n-1}$ is a sequence of the form:
@@ -73,79 +73,102 @@ simplify the evaluation algorithm.  Indeed, we can show that if we start from a
 logical VA $\cA$, then we can construct an equivalent $\EVA$ $\cE$ in linear
 time. %, for evaluating $\cA$.
 \begin{proposition}\label{prop:eVAconstruction}
-%	For every logical VA $\cA$ compiled from a REQL query, one can build in
-%	linear time an $\EVA$ $\cE$ such that $\cE$ evaluated over a document $d$
-%	produces the same output sequences of mappings from $\cA$ evaluated over
-%	$d$.
+	%	For every logical VA $\cA$ compiled from a REQL query, one can build in
+	%	linear time an $\EVA$ $\cE$ such that $\cE$ evaluated over a document
+	%	$d$ produces the same output sequences of mappings from $\cA$ evaluated
+	%	over $d$.
 	For every logical VA $\cA$ compiled from a REQL query \texttt{e} and
 	document $d$, one can build, in linear time, an $\EVA$ $\cE$ such that $\cE$
 	evaluated over $d$ produces precisely the output sequences representing the
 	mappings in $\sem{\cA}_d = \sem{\texttt{e}}_d$.
 \end{proposition}
 
-% TODO: Gonzalo asks for a proof of the proposition
+\begin{proof}
+	To construct an equivalent extended Variable Automaton (eVA) $\cE$ from a
+	document $d$ and a logical VA $\cA = (Q, \delta, q_0, q_f)$ derived from a
+	REQL query \texttt{e}, one can adopt a procedure akin to that for
+	$\varepsilon$-logical VAs from the proof of Proposition
+	\ref{prop:logicalVA}. This process begins by defining, for each state $q \in
+	Q$, a \emph{variable-set closure}, $\vclosure(q)$. This closure encompasses
+	all states that are accessible from $q$ solely through variable transitions.
+	For any state $r$ within $\vclosure(q)$, a series of variable transitions
+	must exist: $(r_0, o_0, r_1), \ldots, (r_n, o_n, r_{n+1})$, where $r_0 = q$,
+	$r_{n+1} = r$, and each $o_i$ represents a variable marker for $0 \leq i
+	\leq n$. Given $\cA$'s basis in a REQL query, the variable markers set
+	$\{o_i \mid 0 \leq i \leq n\}$ remains consistent across all sequences
+	leading to $r$. For each transition $(r, C, s) \in \delta$, where $C$ is a
+	character class, a new transition $(q, a, \{o_i \mid 0 \leq i \leq n\}, s)$
+	is added to the updated transition relation $\delta'$ if and only if $a \in
+	C$ and appears in $d$. Furthermore, if $r$ equals $q_f$, then $q$ should be
+	included in $\cE$'s new accepting states set $F$. Lastly, for every
+	transition of the form $(q, C, q')$, add $(q, a, \emptyset, q')$ to
+	$\delta'$ iff $a \in C$ and appears in $d$. The resulting eVA $\cE = (Q,
+	\delta', q_0, F)$ will satisfy $\sem{\cE}_d = \sem{\cA}_d$.
+\end{proof}
+
 
 \begin{example}\label{ex:lva-eva} To illustrate
 	Proposition~\ref{prop:eVAconstruction}, recall query $\texttt{e0}$ and its
 	equivalent logical VA $\cA_0$ from Example~\ref{example:logicalVA}. The
 	following extended VA $\cE_0$ is equivalent to $\cA_0$:
-%	\begin{center} \begin{tikzpicture}[->,>=stealth, semithick, auto, initial
-%	    text= {}, initial distance= {3mm}, accepting distance= {4mm}, node
-%	    distance=1.13cm, semithick] \tikzstyle{every
-%	    state}=[draw=black,text=black,inner sep=0pt, minimum size=4.3mm]
-%	    \node[initial below,state] (0) {$0$}; \node[state] (2) [right of=0]
-%	    {$2$}; \node[state] (3) [right of=2] {$3$}; \node[state] (4) [right
-%	    of=3] {$4$}; \node[state] (6) [right of=4] {$6$}; \node[state] (7)
-%	    [right of=6] {$7$}; \node[state] (8) [right of=7] {$8$};
-%	    \node[state,accepting] (9) [right of=8] {$9¨$};
-%
-%	        \draw[->] (0) edge[loop above] node {$*/\emptyset$} (0);
-%	        \draw[->] (0) edge node {$t/\Open{x}$} (2);
-%	        \draw[->] (2) edge node {$h/\emptyset$} (3);
-%	        \draw[->] (3) edge node {$* / \Close{x}$} (4);
-%	        \draw[->] (4) edge[loop above] node {$*/\emptyset$} (4);
-%	        \draw[->] (3) edge[bend right,swap] node {$h \, / \, \{\, \Close{x}, \Open{y}\, \}$} (6);
-%	        \draw[->] (4) edge node {$h/\Open{y}$} (6);
-%	        \draw[->] (6) edge node {$a/\emptyset$} (7);
-%	        \draw[->] (7) edge node {$t/\emptyset$} (8);
-%	        \draw[->] (8) edge node {$*/\Close{y}$} (9);    
-%	        \draw[->] (9) edge[loop above] node {$*/\emptyset$} (9);
-%	    \end{tikzpicture}
-%	\end{center}
+	%	\begin{center} \begin{tikzpicture}[->,>=stealth, semithick, auto,
+	%	    initial text= {}, initial distance= {3mm}, accepting distance=
+	%	    {4mm}, node distance=1.13cm, semithick] \tikzstyle{every
+	%	    state}=[draw=black,text=black,inner sep=0pt, minimum size=4.3mm]
+	%	    \node[initial below,state] (0) {$0$}; \node[state] (2) [right of=0]
+	%	    {$2$}; \node[state] (3) [right of=2] {$3$}; \node[state] (4) [right
+	%	    of=3] {$4$}; \node[state] (6) [right of=4] {$6$}; \node[state] (7)
+	%	    [right of=6] {$7$}; \node[state] (8) [right of=7] {$8$};
+	%	    \node[state,accepting] (9) [right of=8] {$9¨$};
+	%
+	%	        \draw[->] (0) edge[loop above] node {$*/\emptyset$} (0);
+	%	        \draw[->] (0) edge node {$t/\Open{x}$} (2);
+	%	        \draw[->] (2) edge node {$h/\emptyset$} (3);
+	%	        \draw[->] (3) edge node {$* / \Close{x}$} (4);
+	%	        \draw[->] (4) edge[loop above] node {$*/\emptyset$} (4);
+	%	        \draw[->] (3) edge[bend right,swap] node {$h \, / \, \{\, \Close{x}, \Open{y}\, \}$} (6);
+	%	        \draw[->] (4) edge node {$h/\Open{y}$} (6);
+	%	        \draw[->] (6) edge node {$a/\emptyset$} (7);
+	%	        \draw[->] (7) edge node {$t/\emptyset$} (8);
+	%	        \draw[->] (8) edge node {$*/\Close{y}$} (9);    
+	%	        \draw[->] (9) edge[loop above] node {$*/\emptyset$} (9);
+	%	    \end{tikzpicture}
+	%	\end{center}
 
-\begin{center}
-	\begin{tikzpicture}[->,>=stealth, semithick, auto, initial text= {}, initial distance= {3mm}, accepting distance= {4mm}, node distance=1.9cm, semithick]
-		\tikzstyle{every state}=[draw=black,text=black,inner sep=0pt, minimum
-		size=7mm]
-		
-		\begin{scope}
-			\node[initial,state] (0) {$0$}; \node[state] (2) [right of=0] {$1$};
-			\node[state] (3) [right of=2] {$2$}; \node[state] (4) [right of=3]
-			{$3$}; \node[state] (5) [right of=4] {$4$}; \node[state,accepting]
-			(6) [right of=5] {$5$};
-			
-			\draw[->] (0) edge[loop above] node {$*/\emptyset$} (0); \draw[->]
-			(0) edge node {$t/\{\Open{x}\}$} (2); \draw[->] (2) edge node
-			{$h/\emptyset$} (3); \draw[->] (3) edge node {$a/\emptyset$} (4);
-			\draw[->] (4) edge node {$t/\emptyset$} (5); \draw[->] (5) edge node
-			{$*/\{\Close{x}\}$} (6); \draw[->] (6) edge[loop above] node
-			{$*/\emptyset$} (6);		
-		\end{scope}
-	\end{tikzpicture}
-\end{center}
-Here we draw an edge $q \ \longtrans{a / S} \ q'$ to denote a transition from
-$q$ to~$q'$ that outputs $S$ when reading a letter $a$, and use $*$ to denote
-any letter. Intuitively, we have moved transitions with variable markers
-``forward'' if we compare $\cE_0$ with $\cA_0$.  For instance, $\cA_0$ had
-transitions $0 \trans{\Open{x}} 1 \trans{t} 2$, but instead $\cE_0$ has a direct
-transition $0 \longtrans{t/\Open{x}} 1$.  Since an extended VA needs to consume
-the entire document, we add self-loops in the initial and the final state; for
-instance $4 \longtrans{t/\Close{x}} 5$. Also note that the transition $0
-\longtrans{*/\emptyset} 0$ closes the variable \texttt{x} before the character
-(\textsf{EOF} or any other) is consumed.
+	\begin{center}
+		\begin{tikzpicture}[->,>=stealth, semithick, auto, initial text= {}, initial distance= {3mm}, accepting distance= {4mm}, node distance=1.9cm, semithick]
+			\tikzstyle{every state}=[draw=black,text=black,inner sep=0pt,
+			minimum size=7mm]
+
+			\begin{scope}
+				\node[initial,state] (0) {$0$}; \node[state] (2) [right of=0]
+				{$1$}; \node[state] (3) [right of=2] {$2$}; \node[state] (4)
+				[right of=3] {$3$}; \node[state] (5) [right of=4] {$4$};
+				\node[state,accepting] (6) [right of=5] {$5$};
+
+				\draw[->] (0) edge[loop above] node {$*/\emptyset$} (0);
+				\draw[->] (0) edge node {$t/\{\Open{x}\}$} (2); \draw[->] (2)
+				edge node {$h/\emptyset$} (3); \draw[->] (3) edge node
+				{$a/\emptyset$} (4); \draw[->] (4) edge node {$t/\emptyset$}
+				(5); \draw[->] (5) edge node {$*/\{\Close{x}\}$} (6); \draw[->]
+				(6) edge[loop above] node {$*/\emptyset$} (6);
+			\end{scope}
+		\end{tikzpicture}
+	\end{center}
+	Here we draw an edge $q \ \longtrans{a / S} \ q'$ to denote a transition
+	from $q$ to~$q'$ that outputs $S$ when reading a letter $a$, and use $*$ to
+	denote any letter. Intuitively, we have moved transitions with variable
+	markers ``forward'' if we compare $\cE_0$ with $\cA_0$.  For instance,
+	$\cA_0$ had transitions $0 \trans{\Open{x}} 1 \trans{t} 2$, but instead
+	$\cE_0$ has a direct transition $0 \longtrans{t/\Open{x}} 1$.  Since an
+	extended VA needs to consume the entire document, we add self-loops in the
+	initial and the final state; for instance $4 \longtrans{t/\Close{x}} 5$.
+	Also note that the transition $0 \longtrans{*/\emptyset} 0$ closes the
+	variable \texttt{x} before the character (\textsf{EOF} or any other) is
+	consumed.
 \end{example}
 
-\section{Determinization} 
+\section{Determinization}
 There is a critical issue with using $\EVA$ as our guide for evaluating REQL:
 several runs can produce the same output sequence. To illustrate this issue in
 its simplest form, assume the following extended VA $\cE_0'$, which is a mild
@@ -160,7 +183,7 @@ modification of $\cE_0$:
 			($(3)+(1.7,0.6)$)  {$3$}; \node[state] (4') at ($(3)+(1.7,-0.6)$)
 			{$3'$}; \node[state] (5) at ($(4)+(1.7,-0.6)$)  {$4$};
 			\node[state,accepting] (6) [right of=5] {$5$};
-			
+
 			\draw[->] (0) edge[loop above] node {$*/\emptyset$} (0); \draw[->]
 			(0) edge node {$t/\{\Open{x}\}$} (2); \draw[->] (2) edge node
 			{$h/\emptyset$} (3); \draw[->] (3) edge node[pos=0.7]
@@ -168,7 +191,7 @@ modification of $\cE_0$:
 			{$t/\emptyset$} (5); \draw[->] (3) edge node[swap,pos=0.7]
 			{$a/\emptyset$} (4'); \draw[->] (4') edge node[swap,pos=0.3]
 			{$t/\emptyset$} (5); \draw[->] (5) edge node {$*/\{\Close{x}\}$}
-			(6); \draw[->] (6) edge[loop above] node {$*/\emptyset$} (6);		
+			(6); \draw[->] (6) edge[loop above] node {$*/\emptyset$} (6);
 		\end{scope}
 	\end{tikzpicture}
 \end{center}
@@ -179,7 +202,7 @@ it: one crossing the state $3$ and another crossing the state $3'$. Then, if we
 guide an evaluation algorithm of eVA with runs, for $\cE_0'$ we will enumerate
 each output sequence twice, although the user expects to extract each output
 without duplicates. Similar behavior can happen for eVAs coming from REQL
-queries with quantifiers or alternations. 
+queries with quantifiers or alternations.
 
 To remove duplicate runs from $\EVA$s, we use a subclass called
 \emph{deterministic} $\EVA$s. We say that an $\EVA$ $\cE$ is
@@ -187,16 +210,51 @@ To remove duplicate runs from $\EVA$s, we use a subclass called
 every two transitions $(q, a_1, S_1, q_1') \in \delta$ and $(q, a_2, S_2, q_2')
 \in \delta$, if $(a_1, S_1) = (a_2, S_2)$, then $q_1' = q_2'$. In other words,
 given a state $q$, the next state is determined by the pair $(a, S)$. The reader
-can check that $\cE_0$ is deterministic but $\cE_0'$ is not. 
+can check that $\cE_0$ is deterministic but $\cE_0'$ is not.
 \begin{proposition} \label{prop:determinization} Let $\cE^{\odet}$ be a
 	deterministic $\EVA$. Then, for every document $d$ and output sequence
 	$(S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$, there is at most one accepting run
 	$\rho$ of $\cE^{\odet}$ over $d$ such that $\oout(\rho) = (S_1, i_1)\cdot
 	\cdots \cdot(S_n, i_n)$.
 \end{proposition}
-Proposition \ref*{prop:determinization} (proof in Appendix
-\ref{app:determinization}) is crucial for our evaluation algorithm, given that
-we can simulate runs and construct the output, without worrying about
+\begin{proof}
+	Consider $\cE^{\odet}$, a deterministic eVA. Let $(S_1, i_1)\cdot \ldots
+	\cdot (S_m, i_m)$ be an output sequence and $d = a_0\ldots a_n$ a document.
+	Assume that $(S_1, i_1)\cdot \ldots \cdot (S_n, i_n)$ is in $\semseq{\cE}_d$
+	(the case where it is not is trivial). Under this assumption, there must
+	exist at least one accepting run $\rho$ of $\cE^{\odet}$ over $d$:
+$$
+\rho \ = \ q_0 \ \longtrans{b_0 / R_0} \ q_1 \ \longtrans{b_1 / R_1} \ q_2 \ \longtrans{b_2 / R_2} \ \ldots \ \ q_{n} \longtrans{b_{m} / R_n} \ q_{n+1}
+$$
+such that $\oout(\rho) = (S_1, i_1)\cdot \cdots \cdot (S_m, i_m)$. Now, suppose
+there is another accepting run $\rho'$ of $\cE^{\odet}$:
+$$
+\rho' \ = \ p_0 \ \longtrans{b_0 / T_0} \ q_1 \ \longtrans{b_1 / T_1} \ p_2 \ \longtrans{b_2 / T_2} \ \ldots \ \ p_{\ell} \longtrans{b_n / T_n} \ p_{n+1}
+$$
+over $d$, where $\rho' \neq \rho$ but $\oout(\rho') = \oout(\rho)$. First,
+observe that
+\begin{equation} \label{eq:outseq}
+\oout(R_0, 0)\cdot \ldots \cdot \oout(R_n, n) = \oout(T_0, 0)\cdot \ldots \cdot \oout(T_n, n) = (S_1, i_1)\cdot \ldots \cdot (S_m, i_m).
+\end{equation}
+This implies that $R_j = T_j$ for all $0 \leq j \leq n$. If there were some $j$
+where $R_j \neq T_j$, then $\oout(R_j, j) \neq \oout(T_j, j)$ would hold. This
+would mean that $R_j$ and $T_j$ cannot both be empty simultaneously, and thus,
+at least one of $(R_j, j)$ and $(T_j, j)$ would be present in the output
+sequence. However, this would contradict equation \eqref{eq:outseq} since the
+sequences in it are strictly increasing with respect to the positions in the
+document.
+
+Next, considering that $\rho'$ and $\rho$ are distinct and $q_0 = p_0$, there
+must exist a smallest index $0 \leq j \leq m$ for which $q_j = p_j$ and $q_{j+1}
+\neq p_{j+1}$. This implies that both $(q_j, b_j, R_j, q_{j+1})$ and $(q_j, b_j,
+R_j, p_{j+1})$ are transitions in $\cE^\odet$. However, this is a contradiction
+because $\cE^{\odet}$ is deterministic, and hence it cannot have two different
+transitions from the same state with the same input and output. Therefore, we
+must conclude that $\rho' = \rho$, establishing the uniqueness of $\rho$.
+\end{proof}
+
+Proposition \ref*{prop:determinization} is crucial for our evaluation algorithm,
+given that we can simulate runs and construct the output, without worrying about
 duplicates. Fortunately, we can always ``determinize'' a non-deterministic
 $\EVA$ $\cE = (Q, q_0, F, \delta)$ by using a subset construction, similar to
 the standard determinization procedure for NFAs. More precisely, we define
@@ -204,7 +262,7 @@ $\cE^{\odet} = (Q^{\odet}, q_0^{\odet}, F^{\odet}, \delta^{\odet})$ such that:
 $Q^{\odet} = 2^Q$, $q_0^{\odet} = \{q_0\}$, $F^{\odet} = \{X \mid X \cap F \neq
 \emptyset\}$, and:
 $$
-	\delta^{\odet} = \{(X, a, S, X') \mid \forall q' \in X'. \, \exists q \in X. \, (q, a, S, q') \in \delta\}.
+	\delta^{\odet} = \left\{(X, a, S, X') \mid \forall q' \in Q.\ q' \in X' \, \rightarrow \,  \left(\exists q \in X.\ (q, a, S, q') \in \delta\right)\right\}.
 $$
 
 \begin{proposition}\label{prop:eVAdet} For every $\EVA$ $\cE$ and document $d$,
@@ -227,37 +285,45 @@ $$
 		\rho^{\odet} \ = \ X_0 \ \longtrans{a_0 / R_0} \ X_1 \ \longtrans{a_1 / R_1}  \ldots \ X_{n-1} \longtrans{a_{n-1} / R_{n-1}} \ X_{n} \longtrans{\osymbol / R_n} \ X_{n+1}
 	$$
 	with $X_0 = q_0^{\odet}$. We claim that $q_i \in X_i$ for $0 \leq i \leq n +
-		1$, and thus, $\rho^{\odet}$ is accepting. By induction, it is trivial that
-	$q_0 \in X_0$ (base case). Then, if $q_i \in X_i$, as $(q_i, a_i, S_i,
-		q_{i+1}) \in \delta$ and $(X_i, a_i, R_i, X_{i+1}) \in \delta^{\odet}$, it
-	must be true that $q_{i+1} \in X_{i+1}$ (inductive hypothesis). Given that
-	$q_{n+1} \in F$, we have that $X_{n+1} \in F^{\odet}$, and thus,
-	$\rho^{\odet}$ is accepting. Thus, $\oout(\rho^{\odet}) = (S_1, i_1)\cdot
-		\cdots \cdot(S_n, i_n)$, and hence, $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n)
-		\in \semseq{\cE^{\odet}}_d$.
+		1$, and thus, $\rho^{\odet}$ is accepting. By induction, it is trivial
+		that $q_0 \in X_0$ (base case). Then, if $q_i \in X_i$, as $(q_i, a_i,
+		S_i, q_{i+1}) \in \delta$ and $(X_i, a_i, R_i, X_{i+1}) \in
+		\delta^{\odet}$, it must be true that $q_{i+1} \in X_{i+1}$ (inductive
+		hypothesis). Given that $q_{n+1} \in F$, we have that $X_{n+1} \in
+		F^{\odet}$, and thus, $\rho^{\odet}$ is accepting. Thus,
+		$\oout(\rho^{\odet}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$, and
+		hence, $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n) \in
+		\semseq{\cE^{\odet}}_d$.
 
 	Conversely, let $(S_1, i_1)\cdot \cdots \cdot(S_m, i_m) \in
-		\semseq{\cE^{\odet}}_d$ with $0 \leq m \leq n$. Then, there is an accepting
-	run $\rho^{\odet}$ of $\cE^{\odet}$ over $d$:
+		\semseq{\cE^{\odet}}_d$ with $0 \leq m \leq n$. Then, there is an
+		accepting run $\rho^{\odet}$ of $\cE^{\odet}$ over $d$:
 	$$
 		\rho^{\odet} \ = \ X_0 \ \longtrans{a_0 / R_0} \ X_1 \ \longtrans{a_1 / R_1}  \ldots \ X_{n-1} \longtrans{a_{n-1} / R_{n-1}} \ X_{n} \longtrans{\osymbol / R_n} \ X_{n+1}
 	$$
-	such that $\oout(\rho^{\odet}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$.
-	We claim that for each $i \leq n$ and $q \in X_i$, there exists a run:
+	such that $\oout(\rho^{\odet}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$. We
+	claim that for each $i \leq n$ and $q \in X_i$, there exists a run:
 	$$
 		\rho_{q,i} \ = \ q_0 \ \longtrans{a_0 / R_0} \ q_1 \ \longtrans{a_1 / R_1}  \ldots \longtrans{a_{i} / R_{i}} \ q_{i} = q.
 	$$
-	of $\cE$ over $d$. By induction, if the claim is true for $i$, then as $(X_i, a_{i+1}, S_{i+1}, X_{i+1}) \in \delta^{\odet}$ with $X_{i+1} = \{q' \in Q \mid \exists q \in X_i.\ (q, a, S, q') \in \delta\}$, then there must exist $q' \in X_{i}$ such that $(q', a_{i+1}, S_{i+1}, q) \in \delta$. Thus, 
+	of $\cE$ over $d$. By induction, if the claim is true for $i$, then as
+	$(X_i, a_{i+1}, S_{i+1}, X_{i+1}) \in \delta^{\odet}$ with $X_{i+1} = \{q'
+	\in Q \mid \exists q \in X_i.\ (q, a, S, q') \in \delta\}$, then there must
+	exist $q' \in X_{i}$ such that $(q', a_{i+1}, S_{i+1}, q) \in \delta$. Thus, 
 	$$
 		\rho_{q,i} \ = \ q_0 \ \longtrans{a_0 / R_0} \ q_1 \ \longtrans{a_1 / R_1}  \ldots \longtrans{a_{i} / R_{i}} \ q_{i} = q' \ \longtrans{a_{i+1} / R_{i+1}} \ q_{i+1} = q.
 	$$
-	must exist as a run of $\cE$ over $d$. By induction, then the claim is true for $q \in X_{n+1}$, and as $X_{n+1} \cap F \neq \emptyset$, we take $q \in X_{n+1} \cap F$. Thus, $\rho_{q, n}$ is an accepting run of $\cE$ over $d$, and $\oout(\rho_{q, n}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$. Therefore, $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n) \in \semseq{\cE}_d$.
+	must exist as a run of $\cE$ over $d$. By induction, then the claim is true
+	for $q \in X_{n+1}$, and as $X_{n+1} \cap F \neq \emptyset$, we take $q \in
+	X_{n+1} \cap F$. Thus, $\rho_{q, n}$ is an accepting run of $\cE$ over $d$,
+	and $\oout(\rho_{q, n}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$.
+	Therefore, $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n) \in \semseq{\cE}_d$.
 \end{proof}
 
 
-An inconvenience of $\cE^{\odet}$ is that its size can be exponential in
-$|\cE|$. Fortunately, for the evaluation algorithm it is not necessary to
-construct % TODO: reference
+An inconvenience of $\cE^{\odet}$ is that its size can be exponential in $|\cE|$
+\citep{HopcroftU79}. Fortunately, for the evaluation algorithm it is not
+necessary to construct % TODO: reference
 entire $\cE^{\odet}$. Instead, we can start from the initial set $\{q_0\}$ and
 traverse only the transitions and states needed by the next letter. Each time
 that we need a new state or transitions of $\cE^{\odet}$, we use $\cE$ to build
@@ -274,10 +340,10 @@ $\cE$.
 
 \begin{algorithm*}
 	\caption{Evaluation of an extended variable-set automaton $\cE =
-	(Q,\delta,q_0,F)$ over the document $b_0 \ldots b_{n}$ where $b_0 \ldots
-	b_{n-1}$ is the original document and $b_n = \osymbol$ is an \texttt{EOF}
-	symbol. $\cdet$ and $\ds$ are the determinization and node manager modules,
-	respectively.}\label{alg:evaluation}
+			(Q,\delta,q_0,F)$ over the document $b_0 \ldots b_{n}$ where $b_0
+			\ldots b_{n-1}$ is the original document and $b_n = \osymbol$ is an
+			\texttt{EOF} symbol. $\cdet$ and $\ds$ are the determinization and
+			node manager modules, respectively.}\label{alg:evaluation}
 	\smallskip
 	\begin{varwidth}[t]{0.5\textwidth}
 		\begin{algorithmic}[1]
@@ -314,7 +380,7 @@ $\cE$.
 	\end{varwidth}
 \end{algorithm*}
 
-\section{Algorithm's variables} 
+\section{Algorithm's variables}
 In Algorithm~\ref{alg:evaluation} we present the main algorithm for \rematch.
 This algorithm evaluates an $\EVA$ $\cE$ over the input document $d$,
 enumerating all output sequences $\semseq{\cE}(d)$. %Next, we introduce the
@@ -331,9 +397,11 @@ explain how state-sets and set-lists work.
 
 The state-sets, denoted by $X$ in the algorithm, are built and cached by the
 determinization module for representing a set $X \subseteq Q$. Each state-set
-$X$ has two variables: $X.\coid$ and $X.\citer$. The former can store an ECS node that represents the current outputs of runs that reached $X$ (recall that every node $\texttt{n}$ in ECS represents a set of mappings $\sem{n}$). Instead, the
-latter is an integer that encodes the current phase number: if $X.\citer = i$
-then the $i$-th iteration was the last one that reached $X$. In practice,
+$X$ has two variables: $X.\coid$ and $X.\citer$. The former can store an ECS
+node that represents the current outputs of runs that reached $X$ (recall that
+every node $\texttt{n}$ in ECS represents a set of mappings $\sem{n}$). Instead,
+the latter is an integer that encodes the current phase number: if $X.\citer =
+i$ then the $i$-th iteration was the last one that reached $X$. In practice,
 $\citer$ will help to know whether it is the first time we reached $X$ during
 some iteration. Further, each state-set has a method $X.\texttt{isFinal}$ that
 outputs $\texttt{TRUE}$ if, and only if, $X$ is a final set (i.e., $X \cap F
@@ -389,7 +457,7 @@ we can detect the right place to reuse memory in the algorithm. Finally, when we
 end firing all state-sets in $\cstateslists$, we swap the two lists and clean
 $\cstateslists'$ to start the iteration again (lines 11-12).
 
-\section{Update method} 
+\section{Update method}
 The workhorse of the evaluation algorithm is $\textproc{UpdateSets}(X, \ell,i)$,
 which is in charge of updating each state-set $X'$ by extending the outputs in
 $X.\coid$ with $(S,i)$, for each $(S, X') \in \!\ell$. For this purpose, we
@@ -430,16 +498,16 @@ for computing all matches.
 
 \begin{example}
 	Figure~\ref{fig:algo-run} displays a graphic of how
-Algorithm~\ref{alg:evaluation} would run with eVA $\cA_0$ from
-Example~\ref{ex:lva-eva} and document $d_0$. Below document $d_0$, we draw as
-columns the \cstateslistss{} that are computed after reading the corresponding
-symbol. For this example, each state-set is a single state, and then each number
-in a \cstateslists{} corresponds to a state in $\cA_0$. Below each state-set
-$X$, we draw in grey the node $X.\coid$ from the ECS that the algorithm
-constructs. 
+	Algorithm~\ref{alg:evaluation} would run with eVA $\cA_0$ from
+	Example~\ref{ex:lva-eva} and document $d_0$. Below document $d_0$, we draw
+	as columns the \cstateslistss{} that are computed after reading the
+	corresponding symbol. For this example, each state-set is a single state,
+	and then each number in a \cstateslists{} corresponds to a state in $\cA_0$.
+	Below each state-set $X$, we draw in grey the node $X.\coid$ from the ECS
+	that the algorithm constructs.
 \end{example}
 
-\section{Next index (optimization)} 
+\section{Next index (optimization)}
 A significant step for the evaluation algorithm is the call to the
 $\cdet.\texttt{next}$ function (line 6). Given a state-set $X$ and a symbol
 $b_i$, the first time that the algorithm calls $\cdet.\texttt{next}(X, b_i)$ the
@@ -455,9 +523,9 @@ entries. This array on each state-set allows us to quickly find the next
 state-set, considerably improving the performance of the evaluation algorithm.
 Here, for the next index, we are sacrificing space versus time. Of course, a
 more compact next index (e.g., for non-ASCII documents) could save space during
-the evaluation. We leave this for future work. 
+the evaluation. We leave this for future work.
 
-\section{Enumeration} 
+\section{Enumeration}
 When we get to the end of the document, $\cstateslists$ contains all state-sets
 $X$ that can be reached by runs of $\cE^\odet$ when reading $b_0 \ldots b_n$. In
 particular, $X.\coid$ has the node representing all outputs of these runs. Then

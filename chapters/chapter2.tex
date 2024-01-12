@@ -79,17 +79,118 @@ every REQL query into a logical VA, giving us a logical plan for the query.
 	one can build in linear time a logical VA $\cA$  such that
 	$\sem{\texttt{e}}_d = \sem{\cA}_d$ for every document~$d$.
 \end{proposition}
-%\cristian{Notar que como esta actualmente el modelo, no podemos compilar los
-%caracteres especiales de inicio y fin de documento. Tampoco están soportados
-%por REmatch actualmente como dice Nico, así que debemos tomar una decisión.}
-The proof for proposition \ref*{prop:logicalVA} is included in Appendix
-\ref*{app:logicalVA}, with the details of the construction. Note that logical VA
-is an extension of \emph{variable-set automata} (VA) from~\citet{FaginKRV15}.
-The main difference between the two models is that logical VA uses char classes
-in its letter transitions whereas VA uses individual letters. Moreover, a
-logical VA can start a run at any position, whereas VA starts from the beginning
-of the document. Although both models are equally expressive, we use logical VAs
-as logical plans for compiling REQL formulas in practice.
+\begin{proof}
+	Let us first define an automaton that is more closely related to the REQL
+	query, this will serve as an itermediary step between the query and the
+	logical VA. An $\varepsilon$-logical VA is a logical VA extended with
+	$\varepsilon$-transitions. Formally, it is a tuple $\cA = (Q, \delta, q_0,
+	q_f)$ defined in the same way as a logical VA, with the difference that the
+	transition relation $\delta$ now can additionally store
+	$\varepsilon$-transitions of the form $(q, \varepsilon, q')$ with $q, q' \in
+	Q$.
+
+	A run $\rho$ of an $\varepsilon$-logical VA $\cA$ over a document $d$ is
+	defined in in almost the exact same way as in a logical VA, with the
+	consideration that an $\varepsilon$-transition acts like an empty variable
+	marker; that is, (1) the automaton doesn't move on the document when an
+	$\varepsilon$-transition occurs, and (2) the mapping $\mu^\rho$ is not
+	defined in terms of the $\varepsilon$-transitions that occurred on $\rho$.
+	The concepts of accepting run and semantics over a document of an
+	$\varepsilon$-logical VA are defined in the same way as in a logical VA.
+
+	It not hard to see that an $\varepsilon$-logical VA $\cA$ can be build into
+	a logical VA $\cA'$ in linear time such that $\semd{\cA} = \semd{\cA'}$ for
+	any document $d$ if $\varepsilon \notin \semd{\cA}$. We start by taking the
+	$\varepsilon$-closure for each state $q$ of $\cA$ (i.e., the set of states
+	that can be reached from $q$ by only traversing $\varepsilon$-transitions),
+	and then for each $(r, o, s) \in \delta$ such that $r$ is in the
+	$\varepsilon$-closure of $q$ and $o \neq \varepsilon$, we say that $(q, o,
+	s)$ is in the new transition relation $\delta'$. We then take the reverse
+	$\varepsilon$-closure of $q_f$ (the set of states that can reach $q_f$ by
+	only traversing $\varepsilon$-transitions) and, for each $(s, o, r) \in
+	\delta$ such that $r$ is in the reverse $\varepsilon$-closure of $q_f$ and
+	$o \neq \varepsilon$, we say that $(s, o, q_f)$ is in the new transition
+	relation $\delta'$. Given that $\varepsilon \notin \semd{\cA}$, we can be
+	sure that the logical VA $\cA' = (Q, \delta', q_0, q_f)$ satisfies
+	$\semd{\cA} = \semd{\cA'}$ for any document $d$, given that $q_f$ not being
+	in the $\varepsilon$-closure of $q_0$ doesn't change $\semd{\cA}$.
+
+	Let $\texttt{e}$ be a REQL. Then, $\varepsilon \notin \semd{\texttt{e}}$ for
+	any document $d$. We will show that there exists an $\varepsilon$-LogicalVA
+	$\cA$ such that $\sem{\texttt{e}}_d = \sem{\cA}_d$ over any document $d$. We
+	proceed by induction. For each of the base cases shown in Table
+	\ref*{tab-semantics} we can construct a LogicalVA $\cA$ with two states: one
+	initial and one accepting, and with a single transition labeled as the char
+	class equivalent to $\texttt{e}$ from the initial state to the accepting
+	state. Is easy to see that this LogicalVA $\cA$ satisfies
+	$\sem{\texttt{e}}_d = \sem{\cA}_d$ over any document $d$.
+
+	The inductive case goes as follows: suppose that $\texttt{e}_1$ and
+	$\texttt{e}_2$ are two REQLs such that there exist $\cA_1 = (Q_1, \delta_1,
+	q_0^1, q_f^1)$ and $\cA_2 = (Q_2, \delta_2, q_0^2, q_f^2)$ both LogicalVAs
+	that satisfy $\sem{\texttt{e}_1}_d = \sem{\cA_1}_d$ and
+	$\sem{\texttt{e}_2}_d = \sem{\cA_2}_d$ over any document $d$. Then,
+
+	\begin{itemize}
+		\item For $\texttt{e} = \texttt{e}_1\texttt{e}_2$ the LogicalVA $\cA =
+			      (Q_1 \cup Q_2, \delta_1 \cup \delta_2 \cup \{(q_f^1,
+			      \varepsilon, q_0^2)\}, q_0^1, q_f^2)$ is such that over any
+			      document $d$, $\sem{\texttt{e}}_d = \sem{\cA}_d$.
+		\item For $\texttt{e} = \texttt{e}_1\texttt{|}\texttt{e}_2$ the
+		      LogicalVA $\cA = (Q', \delta', q_0', q_f')$ with
+		      \begin{align*}
+			      Q'      & = Q_1 \cup Q_2 \cup \{q_0, q_f\}                                                                                                              \\
+			      \delta' & = \delta_1 \cup \delta_2 \cup \{(q_0, \varepsilon, q_0^1), (q_0, \varepsilon, q_0^2), (q_f^1, \varepsilon, q_f), (q_f^2, \varepsilon, q_f) \} \\
+			      q_0'    & = q_0                                                                                                                                         \\
+			      q_f'    & = q_f
+		      \end{align*}
+		      is such that over any document $d$, $\sem{\texttt{e}}_d =
+			      \sem{\cA}_d$.
+		\item For $\texttt{e} = \texttt{!x\{}\texttt{e}_1\texttt{\}}$ the
+		      LogicalVA $\cA$ is defined as
+		      \[
+			      \cA = (Q' \cup \{q_0, q_f\},\delta' \cup \{(q_0, [x, q_0'), (q_f', x\rangle, q_f)\}, q_0, q_f)
+		      \]
+		      such that over any document $d$, $\sem{\texttt{e}}_d =
+			      \sem{\cA_\texttt{e}}_d$.
+		\item For $\texttt{e} = \texttt{e}_1\texttt{*}$ the LogicalVA $\cA$
+		      defined as
+		      \[
+			      \cA = (Q_1 \cup \{q_0', q_f'\},
+			      \delta_1 \cup \{(q_0', \varepsilon, q_0^1), (q_f^1, \varepsilon, q_0^1), (q_f^1, \varepsilon, q_f'), (q_0', \varepsilon, q_f')\},
+			      q_0', q_f')
+		      \]
+		      is such that over any document $d$, $\sem{\texttt{e}}_d =
+			      \sem{\cA}_d$.
+		\item For $\texttt{e} = \texttt{e}_1\texttt{?}$ the LogicalVA $\cA$
+		      defined as
+		      \[
+			      \cA = (Q_1 \cup \{q_0', q_f'\},
+			      \delta_1 \cup \{(q_0', \varepsilon, q_0^1), (q_f^1, \varepsilon, q_f'), (q_0', \varepsilon, q_f')\},
+			      q_0', q_f')
+		      \]
+		      is such that over any document $d$, $\sem{\texttt{e}}_d =
+			      \sem{\cA}_d$.
+		\item For $\texttt{e} = \texttt{e}_1\texttt{+}$, we have that
+		      $\semd{\texttt{e}_1\texttt{+}} =
+		      \semd{\texttt{e}_1(\texttt{e}_1\texttt{*})}$ for any document $d$.
+		      This case is then inductive as it can be constructed from previous
+		      rules.
+		\item For $\texttt{e} = \texttt{e}_1\texttt{\{n,m\}}$ we have that
+		      $\sem{\texttt{e}}_d =
+		      \sem{(\texttt{e}_1)^n(\texttt{e}_1\texttt{?})^{m-n}}_d$ for any
+		      document $d$. This case is then inductive as it can be constructed
+		      from previous rules.
+	\end{itemize}
+
+\end{proof}
+Note that logical VA is an extension of \emph{variable-set automata} (VA)
+from~\citet{FaginKRV15}. The main difference between the two models is that
+logical VA uses char classes in its letter transitions whereas VA uses
+individual letters. Moreover, a logical VA can start a run at any position,
+whereas VA starts from the beginning of the document. Although both models are
+equally expressive, we use logical VAs as logical plans for compiling REQL
+formulas in practice.
 
 \section{Offsets (optimization)}
 
@@ -131,8 +232,112 @@ was actually opened four positions before it was recorded in the run. %when
 opened, the variable \texttt{x} actually stores characters starting four
 positions before the guarded position.
 
-Offsets are implemented in the rewriting module of \rematch\ after constructing
-the first logical VA from a REQL query. When the query contains quantifiers
-(\texttt{*}, \texttt{+}, \texttt{?} and \texttt{\{$n$,$m$\}} operators) or
-alternations (\texttt{|} operator) special care must be taken for offsetting the
-variables. More details are provided in Appendix \ref{app:offset}.
+% Offsets are implemented in the rewriting module of \rematch\ after
+% constructing the first logical VA from a REQL query. When the query contains
+% quantifiers (\texttt{*}, \texttt{+}, \texttt{?} and \texttt{\{$n$,$m$\}}
+% operators) or alternations (\texttt{|} operator) special care must be taken
+% for offsetting the variables. More details are provided in Appendix
+% \ref{app:offset}.
+
+\subsection{Offset logical VA} 
+To formalize this concept we extend the definition of a logical VA as follows: a
+\emph{logical variable-set automata} (offset logical VA) $\cAoff$ is a tuple
+$(Q, \delta, \tau, q_0, q_f)$ that has the same structure as a logical VA, with
+the addition of an \emph{offset marker} function $\tau$ that takes a variable
+marker as input and returns an integer.
+
+A configuration, a run and an accepting run of $\cAoff$ are defined exactly as
+if $\cAoff$ were a logical VA. The only change is in the definition of its
+semantics. Suppose that 
+$$
+	\rho \ = \ (q_0, i_0) \ \trans{o_1} \ (q_1, i_1) \ \trans{o_2} \ \cdots \ \trans{o_m} \ (q_m, i_m)
+$$
+is an accepting run of $\cAoff$. The mapping $\mu^\rho$ then is such that it
+maps $x$ to $[i_j, i_k\rangle$ if, and only if, $o_{i_j + \tau([x)} = [x$ and
+$o_{i_k + \tau(x\rangle)} = x\rangle$. In other words, the mapping $\mu^\rho$
+acts in the same way as if $\cAoff$ were a logical VA, but taking into account
+the offsets given by $\tau$ for each of the variable markers present in the
+transitions of $\cAoff$. Therefore, the semantics of $\sem{\cAoff}_d$ of
+$\cAoff$ over a document $d$ is defined as the set of all $\mu^\rho$ where
+$\rho$ is an accepting run of $\cAoff$ over $d$.
+
+Given the way Algorithm \ref*{alg:evaluation} works, it is desirable to be able
+to construct an offset logical VA $\cAoff$ from an initial logical VA $\cA$ such
+that: (i) the semantics are preserved, i.e., $\sem{\cAoff}_d = \sem{\cA}_d$, and
+(ii) the offset function $\tau$ of $\cAoff$ is optimal in the sense of
+maximizing the absolute values of the offsets for the variable markers, so that
+the decision of changing the state of the ECS is postponed as much as possible
+while reading the document. In REmatch, this is done by the following algorithm,
+which we call \texttt{offset}.
+
+\subsection{Offset algorithm}
+In the implementation of REmatch, the \texttt{offset} optimization is done in
+the early stages of preprocessing the query.
+
+First, for each variable opening we build a list of all the transitions that
+open this variable, and we do the same for each variable closing. The variable
+opening/closing is then offset in bulk, namely, either all of the transitions of
+the form $\Open{x}$ (or $\Close{x}$) are moved at once (in order to preserve
+consistency), or none is. Let \texttt{captureList} be a list of all capture
+transitions opening or closing some variable (for instance, they are all of the
+form $\Open{x}$). For a capture transition $p\ \longtrans{\Open{x}}\ q$ we wish
+to see if there is also a transition $q\ \longtrans{a}\ r$, in order to
+interchange the transition reading the letter $a$, and the one opening the
+variable $x$. That is, we wish to achieve the following transformation in the
+states of our eVA:
+$$p\ \longtrans{\Open{x}}\ q\ \longtrans{a}\ r \ \ \ \ \ \Rightarrow \ \ \ \ \ \
+\ p\ \longtrans{a}\ q\ \longtrans{\Open{x}}\ r$$
+
+
+We will say that we can offset $\Open{x}$ if the following conditions hold for
+every transition $p\ \longtrans{\Open{x}}\ q$ appearing in \texttt{captureList}
+associated with $\Open{x}$:
+\begin{enumerate}
+	\item $q$ is not a final state;
+	\item There are no transitions of the form $q\ \longtrans{\Open{y}}\ r$, or
+	of the form $p'\ \longtrans{v}\ q$, with $v$ a variable marker, in the
+	automaton; \label{item:offset-cond-2}
+	\item There is at least one transition of the form $q\ \longtrans{a}\ r$;
+	\item For all transitions $q\ \longtrans{a}\ r$, $q$ can not be reached from
+	$r$; and
+	\item For any other transition $p'\ \longtrans{\Open{x}}\ q'$, if we take
+	any $q\ \longtrans{a}\ r$, then $q'$ is not reachable from $r$.
+\end{enumerate}
+
+The first condition prevents offsetting a variable that leads to an accepting
+run. The second condition prevents manipulating a state which has multiple
+capture transitions associated with it. The third condition assures we actually
+have a transition to offset. Fourth transition makes sure that in case of moving
+the $\Open{x}$ variable marker forward, we will not create any loops involving
+this variable marker. Finally, the last condition ensures that moving one
+$\Open{x}$ variable marker will not result in an inconsistent run involving
+another such transition. This could, for instance, happen if we had both $p\
+\longtrans{\Open{x}}\ q\ \longtrans{a}\ r$ and $p'\ \longtrans{\Open{x}}\ q'\
+\longtrans{a}\ q$ in our automaton, since offsetting the first $\Open{x}$
+transition would result in an automaton that has a run opening $x$ twice.
+
+Given each such list \texttt{captureList} (for example for $\Open{x}$), we
+manipulate each set of transitions $p\ \longtrans{\Open{x}}\ q\ \longtrans{a}\
+r$, by switching the $\Open{x}$ and $a$ symbols (in reality, an auxiliary state
+is created for this). The new \texttt{captureList} is then populated by adding
+the transitions $q\ \longtrans{\Open{x}}\ r$ to it, and the process is repeated
+as long as the newly created list satisfies the five conditions specified above.
+
+Finally, we process the variable offsets by finding the reverse topological
+order of all the capture transitions. Then we offset the variables in this order
+so that we can move them as far forward as possible. To illustrate why this is
+important, consider the automaton consisting of a single run as follows:
+$$q_0\ \longtrans{\Open{x}}\ q_1\ \longtrans{a}\ q_2\ \longtrans{\Close{x}}\
+q_3\ \longtrans{b}\ q4$$ If we were to first offset the $\Open{x}$ variable
+marker, this would result in:
+$$q_0\ \longtrans{a}\ q_1\ \longtrans{\Open{x}^{-1}}\ q_2\
+\longtrans{\Close{x}}\ q_3\ \longtrans{b}\ q4.$$ Notice that $\Open{x}$ cannot
+be not be further offset due to condition (ii) above. Then, if we offset
+$\Close{x}$ we get: $$q_0\ \longtrans{a}\ q_1\ \longtrans{\Open{x}^{-1}}\ q_2\
+\longtrans{b}\ q_3\ \longtrans{\Close{x}^{-1}}\ q4$$ Which is suboptimal as
+$\Open{x}^{-1}$ can still be offset from its position in this new automaton. If
+instead the variables are processed in reverse topological order, this results
+in:
+$$q_0\ \longtrans{a}\ q_1\ \longtrans{b}\ q_2\ \longtrans{\Open{x}^{-2}}\ q_3\
+\longtrans{\Close{x}^{-1}}\ q4$$ which is better in terms of the maximization of
+the absolute values of the offsets.
