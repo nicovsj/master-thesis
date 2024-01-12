@@ -311,22 +311,27 @@ associated with $\Open{x}$:
 
 The first condition prevents offsetting a variable that leads to an accepting
 run. The second condition prevents manipulating a state which has multiple
-capture transitions associated with it. The third condition assures we actually
-have a transition to offset. Fourth transition makes sure that in case of moving
-the $\Open{x}$ variable marker forward, we will not create any loops involving
-this variable marker. Finally, the last condition ensures that moving one
-$\Open{x}$ variable marker will not result in an inconsistent run involving
-another such transition. This could, for instance, happen if we had both $p\
-\longtrans{\Open{x}}\ q\ \longtrans{a}\ r$ and $p'\ \longtrans{\Open{x}}\ q'\
-\longtrans{a}\ q$ in our automaton, since offsetting the first $\Open{x}$
-transition would result in an automaton that has a run opening $x$ twice.
+capture transitions associated with it, otherwise the semantics of the automaton
+can change. The third condition assures we actually have a transition to offset.
+Fourth transition makes sure that in case of moving the $\Open{x}$ variable
+marker forward, we will not create any loops involving this variable marker.
+Finally, the last condition ensures that moving one $\Open{x}$ variable marker
+will not result in an inconsistent run involving another such transition. This
+could, for instance, happen if we had both $p\ \longtrans{\Open{x}}\ q\
+\longtrans{a}\ r$ and $p'\ \longtrans{\Open{x}}\ q'\ \longtrans{a}\ q$ in our
+automaton, since offsetting the first $\Open{x}$ transition would result in an
+automaton that has a run opening $x$ twice . The reader should be aware that
+these conditions prohibit the offsetting of a variable into some configurations
+of transitions and states that cannot happen in a logical VA directly compiled
+from a REQL. However, it is important to note that such configurations might
+arise in the logical VA following multiple iterations of this same algorithm.
 
 Given each such list \texttt{captureList} (for example for $\Open{x}$), we
 manipulate each set of transitions $p\ \longtrans{\Open{x}}\ q\ \longtrans{a}\
-r$, by switching the $\Open{x}$ and $a$ symbols (in reality, an auxiliary state
-is created for this). The new \texttt{captureList} is then populated by adding
-the transitions $q\ \longtrans{\Open{x}}\ r$ to it, and the process is repeated
-as long as the newly created list satisfies the five conditions specified above.
+r$, by switching the $\Open{x}$ and $a$ symbols. The new \texttt{captureList} is
+then populated by adding the transitions $q\ \longtrans{\Open{x}}\ r$ to it, and
+the process is repeated as long as the newly created list satisfies the five
+conditions specified above.
 
 Finally, we process the variable offsets by finding the reverse topological
 order of all the capture transitions. Then we offset the variables in this order
