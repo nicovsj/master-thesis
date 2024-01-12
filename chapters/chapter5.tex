@@ -206,15 +206,54 @@ $Q^{\odet} = 2^Q$, $q_0^{\odet} = \{q_0\}$, $F^{\odet} = \{X \mid X \cap F \neq
 $$
 	\delta^{\odet} = \{(X, a, S, X') \mid \forall q' \in X'. \, \exists q \in X. \, (q, a, S, q') \in \delta\}.
 $$
-%\begin{align*} Q^{\odet} & = 2^Q \\
-%q_0^{\odet} & = \{q_0\} \\
-%F^{\odet} & = \{X \mid X \cap F \neq \emptyset\}; \text{ and} \\
-%\delta^{\odet} & = \{(X, a, S, X') \mid \forall q' \in X'. \, \exists q \in X.
-%\, (q, a, S, q') \in \delta\}. \end{align*} where $2^Q$ is the powerset of $Q$,
-%namely, all subsets of $Q$.
-One can check that $\cE$ and $\cE^{\odet}$ are equivalent (i.e., they define the
-same output for every document), and that $\cE^{\odet}$ is deterministic.
-% TODO: proof
+
+\begin{proposition}\label{prop:eVAdet} For every $\EVA$ $\cE$ and document $d$,
+	the $\EVA$ $\cE^{\odet}$ is equivalent to $\cE$, namely,
+	$\semseq{\cE^{\odet}}_d = \semseq{\cE}_d$
+\end{proposition}
+
+\begin{proof}
+	Let $d=a_0\ldots a_{n-1}$, $\cE = (Q, q_0, F, \delta)$ and $\cE^{\odet} =
+		(Q^{\odet},q_0^{\odet}, F^{\odet}, \delta^{\odet})$.
+
+	Let $(S_1, i_1)\cdot \cdots \cdot(S_m, i_m) \in \semseq{\cE}_d$ with $0 \leq
+		m \leq n$. Then, there is an accepting run $\rho$ of $\cE$ over $d$:
+	$$
+		\rho \ = \ q_0 \ \longtrans{a_0 / R_0} \ q_1 \ \longtrans{a_1 / R_1}  \ldots \ q_{n-1} \longtrans{a_{n-1} / R_{n-1}} \ q_{n} \longtrans{\osymbol / R_n} \ q_{n+1}
+	$$
+	such that $\oout(\rho) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$. There must
+	also exist a run $\rho^{\odet}$ of $\cE^{\odet}$ over $d$:
+	$$
+		\rho^{\odet} \ = \ X_0 \ \longtrans{a_0 / R_0} \ X_1 \ \longtrans{a_1 / R_1}  \ldots \ X_{n-1} \longtrans{a_{n-1} / R_{n-1}} \ X_{n} \longtrans{\osymbol / R_n} \ X_{n+1}
+	$$
+	with $X_0 = q_0^{\odet}$. We claim that $q_i \in X_i$ for $0 \leq i \leq n +
+		1$, and thus, $\rho^{\odet}$ is accepting. By induction, it is trivial that
+	$q_0 \in X_0$ (base case). Then, if $q_i \in X_i$, as $(q_i, a_i, S_i,
+		q_{i+1}) \in \delta$ and $(X_i, a_i, R_i, X_{i+1}) \in \delta^{\odet}$, it
+	must be true that $q_{i+1} \in X_{i+1}$ (inductive hypothesis). Given that
+	$q_{n+1} \in F$, we have that $X_{n+1} \in F^{\odet}$, and thus,
+	$\rho^{\odet}$ is accepting. Thus, $\oout(\rho^{\odet}) = (S_1, i_1)\cdot
+		\cdots \cdot(S_n, i_n)$, and hence, $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n)
+		\in \semseq{\cE^{\odet}}_d$.
+
+	Conversely, let $(S_1, i_1)\cdot \cdots \cdot(S_m, i_m) \in
+		\semseq{\cE^{\odet}}_d$ with $0 \leq m \leq n$. Then, there is an accepting
+	run $\rho^{\odet}$ of $\cE^{\odet}$ over $d$:
+	$$
+		\rho^{\odet} \ = \ X_0 \ \longtrans{a_0 / R_0} \ X_1 \ \longtrans{a_1 / R_1}  \ldots \ X_{n-1} \longtrans{a_{n-1} / R_{n-1}} \ X_{n} \longtrans{\osymbol / R_n} \ X_{n+1}
+	$$
+	such that $\oout(\rho^{\odet}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$.
+	We claim that for each $i \leq n$ and $q \in X_i$, there exists a run:
+	$$
+		\rho_{q,i} \ = \ q_0 \ \longtrans{a_0 / R_0} \ q_1 \ \longtrans{a_1 / R_1}  \ldots \longtrans{a_{i} / R_{i}} \ q_{i} = q.
+	$$
+	of $\cE$ over $d$. By induction, if the claim is true for $i$, then as $(X_i, a_{i+1}, S_{i+1}, X_{i+1}) \in \delta^{\odet}$ with $X_{i+1} = \{q' \in Q \mid \exists q \in X_i.\ (q, a, S, q') \in \delta\}$, then there must exist $q' \in X_{i}$ such that $(q', a_{i+1}, S_{i+1}, q) \in \delta$. Thus, 
+	$$
+		\rho_{q,i} \ = \ q_0 \ \longtrans{a_0 / R_0} \ q_1 \ \longtrans{a_1 / R_1}  \ldots \longtrans{a_{i} / R_{i}} \ q_{i} = q' \ \longtrans{a_{i+1} / R_{i+1}} \ q_{i+1} = q.
+	$$
+	must exist as a run of $\cE$ over $d$. By induction, then the claim is true for $q \in X_{n+1}$, and as $X_{n+1} \cap F \neq \emptyset$, we take $q \in X_{n+1} \cap F$. Thus, $\rho_{q, n}$ is an accepting run of $\cE$ over $d$, and $\oout(\rho_{q, n}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$. Therefore, $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n) \in \semseq{\cE}_d$.
+\end{proof}
+
 
 An inconvenience of $\cE^{\odet}$ is that its size can be exponential in
 $|\cE|$. Fortunately, for the evaluation algorithm it is not necessary to
@@ -292,8 +331,7 @@ explain how state-sets and set-lists work.
 
 The state-sets, denoted by $X$ in the algorithm, are built and cached by the
 determinization module for representing a set $X \subseteq Q$. Each state-set
-$X$ has two variables: $X.\coid$ and $X.\citer$. The former can store a node
-that represents the current outputs of runs that reached $X$. Instead, the
+$X$ has two variables: $X.\coid$ and $X.\citer$. The former can store an ECS node that represents the current outputs of runs that reached $X$ (recall that every node $\texttt{n}$ in ECS represents a set of mappings $\sem{n}$). Instead, the
 latter is an integer that encodes the current phase number: if $X.\citer = i$
 then the $i$-th iteration was the last one that reached $X$. In practice,
 $\citer$ will help to know whether it is the first time we reached $X$ during
