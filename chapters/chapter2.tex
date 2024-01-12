@@ -261,14 +261,19 @@ transitions of $\cAoff$. Therefore, the semantics of $\sem{\cAoff}_d$ of
 $\cAoff$ over a document $d$ is defined as the set of all $\mu^\rho$ where
 $\rho$ is an accepting run of $\cAoff$ over $d$.
 
-Given the way Algorithm \ref*{alg:evaluation} works, it is desirable to be able
-to construct an offset logical VA $\cAoff$ from an initial logical VA $\cA$ such
-that: (i) the semantics are preserved, i.e., $\sem{\cAoff}_d = \sem{\cA}_d$, and
-(ii) the offset function $\tau$ of $\cAoff$ is optimal in the sense of
-maximizing the absolute values of the offsets for the variable markers, so that
-the decision of changing the state of the ECS is postponed as much as possible
-while reading the document. In REmatch, this is done by the following algorithm,
-which we call \texttt{offset}.
+To set the stage for the discussion on the construction of an offset logical VA,
+$\cAoff$, from an initial logical VA, $\cA$, it is important to understand the
+underlying rationale, which is rooted in the operational intricacies of our
+output encoding data structure and algorithm. These details will be thoroughly
+explored in subsequent chapters (see Chapters \ref{chpt:output} and
+\ref{chpt:evaluation}). However, for the present context, we highlight that it
+is desirable for $\cAoff$ to meet two key criteria: (i) the preservation of
+semantics, meaning $\sem{\cAoff}_d = \sem{\cA}_d$, and (ii) the optimization of
+the offset function $\tau$ in $\cAoff$. This optimization aims to maximize the
+absolute values of the offsets for the variable markers. Such a design ensures
+that alterations to the state of our output encoding data structure are deferred
+as long as possible during document processing. This approach is effectively
+implemented in REmatch through an algorithm we have named \texttt{offset}.
 
 \subsection{Offset algorithm}
 In the implementation of REmatch, the \texttt{offset} optimization is done in
