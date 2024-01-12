@@ -87,13 +87,14 @@ Our queries for each dataset are designed as follows:
 \end{enumerate}
 
 For each dataset roughly 10,000 queries were generated. We then sample 150
-queries from each set and use these for our experiments, this in order to reduce
-the overall experimentation time to gather results. The queries were designed
-such they cover real world-scenarios where overlapping matches occur naturally.
-For instance, in the \textsf{DNA} dataset, a starting motif might be paired with
-multiple occurrences of an end motif, which is a natural use case for the
-all-match semantics, and something that is difficult to capture using modern
-RegEx engines, as shown in Table~\ref{tab:outputs}. 
+queries from each set and use these for our experiments (this for the
+experiments to be more manageable in terms of their total runtime, without
+losing statistical significance). The queries were designed such they cover real
+world-scenarios where overlapping matches occur naturally. For instance, in the
+\textsf{DNA} dataset, a starting motif might be paired with multiple occurrences
+of an end motif, which is a natural use case for the all-match semantics, and
+something that is difficult to capture using modern RegEx engines, as shown in
+Table~\ref{tab:outputs}. 
 
 
 \subsection{How we ran the queries}
@@ -249,7 +250,7 @@ REmatch is running a more heavy processing task, the performance is comparable
 to the standard and highly optimized RegEx engines.
 
 \begin{table}
-	\begin{tabular}{l|ccc}
+	\begin{tabular}{l|rrr}
 		                   & \textsf{DNA}      & \textsf{Literature} &
 		                   \textsf{SPARQL}   \\
 		\hline
@@ -284,17 +285,18 @@ to the standard and highly optimized RegEx engines.
 
 
 \subsection{Discussion}
-As we can see from Figure~\ref{fig:comparison}, \rematch\ shows good performance as compared to other engines. On
-the \textsf{Literature} dataset, \rematch\ is bested only by \textsf{RE2}, which
-does not look for all the outputs. On the \textsf{DNA} dataset \rematch\ is a
-close third, bested only by \textsf{RE2} and \textsf{PCRE2} by a tiny margin.
-In regards to \textsf{SPARQL}, the analysis is similar. We remark that in this
-dataset \textsf{TRE} throws an error on every query. Comparing the number of
-outputs, in Table~\ref{tab:outputs} we can observe that \rematch\ generally does
-more work compared to other engines. This is particularly evident when comparing
-to engines not using look-around operators (\textsf{RE2} and \textsf{TRE}). Even
-for the engines with look-around supported, we sometimes cannot capture all the
-outputs (for instance when two nested matches start at the same position), as
-witnessed in Table~\ref{tab:outputs}. Overall, the experiments illustrate that
-the task of encountering \emph{all} the outputs, including overlapping ones, can
-be done with minimal overhead when comparing with classical RegEx matching.
+As we can see from Figure~\ref{fig:comparison}, \rematch\ shows good performance
+as compared to other engines. On the \textsf{Literature} dataset, \rematch\ is
+bested only by \textsf{RE2}, which does not look for all the outputs. On the
+\textsf{DNA} dataset \rematch\ is a close third, bested only by \textsf{RE2} and
+\textsf{PCRE2} by a tiny margin. In regards to \textsf{SPARQL}, the analysis is
+similar. We remark that in this dataset \textsf{TRE} throws an error on every
+query. Comparing the number of outputs, in Table~\ref{tab:outputs} we can
+observe that \rematch\ generally does more work compared to other engines. This
+is particularly evident when comparing to engines not using look-around
+operators (\textsf{RE2} and \textsf{TRE}). Even for the engines with look-around
+supported, we sometimes cannot capture all the outputs (for instance when two
+nested matches start at the same position), as witnessed in
+Table~\ref{tab:outputs}. Overall, the experiments illustrate that the task of
+encountering \emph{all} the outputs, including overlapping ones, can be done
+with minimal overhead when comparing with classical RegEx matching.
