@@ -397,16 +397,16 @@ explain how state-sets and set-lists work.
 
 The state-sets, denoted by $X$ in the algorithm, are built and cached by the
 determinization module for representing a set $X \subseteq Q$. Each state-set
-$X$ has two variables: $X.\coid$ and $X.\citer$. The former can store an ECS
-node that represents the current outputs of runs that reached $X$ (recall that
-every node $\texttt{n}$ in ECS represents a set of mappings $\sem{n}$). Instead,
-the latter is an integer that encodes the current phase number: if $X.\citer =
-i$ then the $i$-th iteration was the last one that reached $X$. In practice,
-$\citer$ will help to know whether it is the first time we reached $X$ during
-some iteration. Further, each state-set has a method $X.\texttt{isFinal}$ that
-outputs $\texttt{TRUE}$ if, and only if, $X$ is a final set (i.e., $X \cap F
-\neq \emptyset$). In the implementation, this is a flag that the determinization
-module sets when creating $X$.
+$X$ has two variables: $X.\coid$ and $X.\citer$. The former can store a
+reference to an ECS node that represents the current outputs of runs that
+reached $X$ (recall that every node $\texttt{n}$ in ECS encodes a set of
+mappings $\sem{n}$). Instead, the latter is an integer that encodes the current
+phase number: if $X.\citer = i$ then the $i$-th iteration was the last one that
+reached $X$. In practice, $\citer$ will help to know whether it is the first
+time we reached $X$ during some iteration. Further, each state-set has a method
+$X.\texttt{isFinal}$ that outputs $\texttt{TRUE}$ if, and only if, $X$ is a
+final set (i.e., $X \cap F \neq \emptyset$). In the implementation, this is a
+flag that the determinization module sets when creating $X$.
 
 We will also use set-lists, denoted by $\cstateslists$ in the algorithm, which
 are linked lists of state-sets. For this data structure, we assume a method
@@ -528,8 +528,8 @@ the evaluation. We leave this for future work.
 \section{Enumeration}
 When we get to the end of the document, $\cstateslists$ contains all state-sets
 $X$ that can be reached by runs of $\cE^\odet$ when reading $b_0 \ldots b_n$. In
-particular, $X.\coid$ has the node representing all outputs of these runs. Then
-we call $\textproc{Enumerate}$ (line 13), which iterates over all $X \in
+particular, $X.\coid$ has the ECS node that encodes all outputs of these runs.
+Then we call $\textproc{Enumerate}$ (line 13), which iterates over all $X \in
 \cstateslists$ that are final, and enumerates the output sequences in $X.\coid$
 by calling the enumerate method of the node manager (lines 23-25).
 %
