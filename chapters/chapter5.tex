@@ -91,18 +91,33 @@ time. %, for evaluating $\cA$.
 	\ref{prop:logicalVA}. This process begins by defining, for each state $q \in
 	Q$, a \emph{variable-set closure}, $\vclosure(q)$. This closure encompasses
 	all states that are accessible from $q$ solely through variable transitions.
+	\cristian{``through \textbf{zero or more} variable transitions''.}
 	For any state $r$ within $\vclosure(q)$, a series of variable transitions
 	must exist: $(r_0, o_0, r_1), \ldots, (r_n, o_n, r_{n+1})$, where $r_0 = q$,
 	$r_{n+1} = r$, and each $o_i$ represents a variable marker for $0 \leq i
-	\leq n$. Given $\cA$'s basis in a REQL query, the variable markers set
+	\leq n$. 
+	 \cristian{Yo cambiaria la linea anterior por: For any state $r$ within $\vclosure(q)$, a sequence (possibly empty) of variable transitions
+	 	must exist: $(r_0, o_1, r_1), (r_1, o_2, r_2), \ldots, (r_{n-1}, o_n, r_{n})$, where $r_0 = q$,
+	 	$r_{n} = r$, and each $o_i$ represents a variable marker for $0 \leq i
+	 	\leq n$. }
+	
+	Given $\cA$'s basis in a REQL query, 
+	\cristian{``Given $\cA$'s basis in a REQL query \textbf{that is well-design},''. Notar que lo de well-design es lo que hace la diferencia} 
+	the variable markers set
 	$\{o_i \mid 0 \leq i \leq n\}$ remains consistent across all sequences
 	leading to $r$. For each transition $(r, C, s) \in \delta$, where $C$ is a
 	character class, a new transition $(q, a, \{o_i \mid 0 \leq i \leq n\}, s)$
 	is added to the updated transition relation $\delta'$ if and only if $a \in
-	C$ and appears in $d$. Furthermore, if $r$ equals $q_f$, then $q$ should be
-	included in $\cE$'s new accepting states set $F$. Lastly, for every
+	C$ and appears in $d$.
+	\cristian{Aqui agregaria el cambio de que ExtendedVA puede ocupar charclasses.}
+	Furthermore, if $r$ equals $q_f$, then $q$ should be
+	included in $\cE$'s new accepting states set $F$. 
+	\cristian{Furthermore, if $r$ equals $q_f$, then we add a transition $(q, \osymbol, \{o_i \mid 0 \leq i \leq n\}, q_f)$.}
+	Lastly, for every
 	transition of the form $(q, C, q')$, add $(q, a, \emptyset, q')$ to
-	$\delta'$ iff $a \in C$ and appears in $d$. The resulting eVA $\cE = (Q,
+	$\delta'$ iff $a \in C$ and appears in $d$. 
+	\cristian{Aqui también agregas el cambio de que ExtendedVA puede ocupar charclasses.}
+	The resulting eVA $\cE = (Q,
 	\delta', q_0, F)$ will satisfy $\sem{\cE}_d = \sem{\cA}_d$.
 \end{proof}
 
