@@ -37,7 +37,7 @@ a single transition, where $S$ holds all the variable markers from the
 contiguous variable transitions, and $a$ is the letter from the letter
 transition. In particular, when $S = \emptyset$, the automaton changes the state
 and nothing is output.
-% TODO: Gonzalo didn't understand this part Note that the special symbol
+
 %$\osymbol$ is used to simulate opening variables before reading the first
 %letter of the document. We define the set $\Var(\cE)$ as the set of all
 %variables $x$ that are mentioned in some transition of $\cE$.
@@ -539,5 +539,3 @@ presentation, we code Algorithm~\ref{alg:evaluation} with the enumeration
 procedure after reading the whole document. %Instead, in REmatch's
 implementation, we call the enumeration method whenever we reach a final state.
 
-
-%TODO: Gonzalo asks for explanation of the relation of X.n and ECS.
