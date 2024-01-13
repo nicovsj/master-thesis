@@ -111,16 +111,15 @@ architecture, as illustrated in Figure~\ref{fig:architecture}. Of course, a
 natural question to ask is what is the effect of each one of these
 optimizations, and whether implementing the basic algorithm for computing all
 matches of a REQL expression  would be competitive enough already? In this
-section, we test that hypothesis, and show that a vanilla implementation of
+subsection, we test that hypothesis, and show that a naive implementation of
 Algorithm~\ref{alg:evaluation} runs several orders of magnitude slower that the
-full \rematch\ stack. Additionally, we test how each single optimization affects
-the performance of \rematch.
+full \rematch\ stack. Additionally, we test how each single optimization in
+isolation affects the performance of \rematch.
 
 
 
 
-For this, we run the experiments described in Section~\ref{ss:setup}, and test
-the following versions of \rematch:
+For this, we run our experiments with the following versions of \rematch:
 \begin{itemize}
 	\item \textsc{Naive}, which is just the implementation of
 	Algorithm~\ref{alg:evaluation}.
@@ -135,16 +134,18 @@ the following versions of \rematch:
 	\item \textsc{Light Search}, which finds a valid segmentation of the
 	document that are guaranteed to produce the output and runs the full
 	algorithm over these segments (Chapter~\ref{chpt:filtering}).
+	\item \rematch, which is the full version of the system.
 \end{itemize}
 
-Here each new version includes all the optimizations  previously listed. For
-example, the \textsc{Offset} version of the algorithm includes both the
-\textsc{Node Manager} and the \textsc{Next index} optimizations. As the
-optimizations are designed to help the algorithm in various aspects, we test
-their impact along three dimensions: (i) time; (ii) memory consumption; and
-(iii) time needed to return the first output. Boxplots for time and first output
-time are presented in Figures \ref{fig:opt-time} and \ref{fig-optimizations},
-while Table~\ref{tab-memory} shows the average memory consumption.
+Here we test the effect of each optimization in isolation. For instance, the
+\textsc{Offset} version only has the offset optimization on top of the naive
+algorithm. The exception is the full \rematch\ system, which includes all of the
+mentioned optimizations. As the optimizations are designed to help the algorithm
+in various aspects, we test their impact along three dimensions: (i) time; (ii)
+memory consumption; and (iii) time needed to return the first output. Boxplots
+for time and first output time are presented in Figures \ref{fig:opt-time} and
+\ref{fig-optimizations}, while Table~\ref{tab-memory} shows the average memory
+consumption.
 
 
 \begin{figure}[t]
@@ -168,25 +169,24 @@ while Table~\ref{tab-memory} shows the average memory consumption.
 
 
 \subsection{Discussion}
-As we can observe (Figure~\ref{fig:opt-time}), among all three datasets, adding
-the \textsc{Node Manager} module makes the runtime of our experiments drop
-noticeably, however the real savings come from the \textsc{Next index}
-optimization, which allows us to instantaneously check whether a character
-triggers an automaton transition. The \textsc{Offset} and \textsc{Light Search}
-version reduces the runtime in a meaningful manner as well. Concerning memory
-consumption (Table~\ref{tab-memory}), \textsc{Node Manager} drastically reduces
-the memory consumption compared to the \textsc{Naive} version. Due to storing
-more information in each transition, \textsc{Next index} increases memory
-consumption, and \textsc{Offset} and \textsc{Early Output} tend to decrease it
-again due to discarding nodes that are not needed any more by the algorithm
-sooner. Considering time to first output (Figure~\ref{fig-optimizations}), we
-can see that \textsc{Next index} drops the runtime by an order of magnitude, and
-another order of magnitude is gained by \textsc{Early Output}, whose main
-objective is precisely this: deliver the outputs to the user as soon as
-possible. Overall, our experiments show that the proposed optimizations, which
-are closely linked to the \rematch\ architecture
-(Figure~\ref{fig:architecture}), indeed improve the performance of base
-algorithm, denoted \textsc{Naive}, by orders of magnitude.
+As we can observe (Figure~\ref{fig:opt-time}), each of our optimizations does
+drop the total runtime of the workload when comparing against \textsc{Naive}.
+The most consistent improvements come from \textsc{Next index} and
+\textsc{Offset} optimizations. The \textsc{Light Search} version offers
+significant improvements, particularly in the median, but bad cases can hamper
+its performance, as witnessed over the \textsf{SPARQL} dataset. Over all the
+dataset the full version of \rematch\ runs the fastest, as expected. Concerning
+memory consumption (Table~\ref{tab-memory}), \textsc{Node Manager} drastically
+reduces memory usage, since this is its main purpose. \textsc{Offset} and
+\textsc{Light Search} can also reduce memory usage, but their performance varies
+significantly based on the query load. When it comes to time to first output
+(Figure~\ref{fig-optimizations}), both \textsc{Early Output} and \textsc{Light
+Search} show consistent and significant improvements, as does \textsc{Next
+Index}. Over all the tested dimensions, the full version of \rematch\ shows
+superior performance to any a single optimization on its own. Slight hit in
+memory usage is noticeable in some cases due to the interaction of different
+optimization methods in the full version, but overall memory usage is still very
+low.
 
 
 \begin{table}[t]
@@ -211,14 +211,16 @@ algorithm, denoted \textsc{Naive}, by orders of magnitude.
 
 \subsection{The setup}
 Here we do a thorough analysis of how \rematch\ compares to classic RegEx
-processing libraries. For this, we tried to be thorough, and include both
-engines that can approximate the all-match semantics using look-around
-operators, and others that cannot. In our comparison the following engines are
-used:
+processing libraries. For a fair comparison, we considered a representative set
+of RegEx engines implemented in C++ that can approximate the all-match semantics
+using look-around operators. In addition, we also considered two engines that do
+not support look-around operators; and will thus not output the same matches.
+The engines used for comparison are:
 \begin{itemize}
 	\item \textsf{PCRE}~\citep{pcre} version: 8.45;
 	\item \textsf{PCRE2}~\citep{pcre2} version 10.40 (using JPCRE2 C++
 	wrapper~\citep{wrapper});
+	\item \textsf{pcregrep}~\citep{grep} version 8.45;
 	\item \textsf{Boost.Regex}~\citep{boost} version 1.81.0;
 	\item \textsf{Oniguruma}~\citep{oniguruma} version 6.9.7.1;
 	\item \textsf{RE2}~\citep{re2} version 2021--11--01; and
@@ -229,7 +231,12 @@ For engines that support look-around operators (\textsf{PCRE}, \textsf{PCRE2},
 Section~\ref{ss:setup} so that they retrieve all the matches. For \textsf{RE2}
 and \textsf{TRE}, which do not support look-around operators, we rewrite the
 queries using capture groups such they resemble as closely as possible the
-original experiments, although they do not perform the same task.
+original experiments, although they do not perform the same task. We also
+include \textsf{grep} and use its PCRE syntax to have a standard command line
+tool in our comparison. Notice that standard \textsf{grep} only allows matching
+a single line to a pattern and not extracting any substring; thus an extended
+version is used. Since standard \textsf{grep} does not allow extracting
+substrings an extended version is used.
 
 
 The results are presented in Figure~\ref{fig:comparison} and
@@ -289,14 +296,21 @@ As we can see from Figure~\ref{fig:comparison}, \rematch\ shows good performance
 as compared to other engines. On the \textsf{Literature} dataset, \rematch\ is
 bested only by \textsf{RE2}, which does not look for all the outputs. On the
 \textsf{DNA} dataset \rematch\ is a close third, bested only by \textsf{RE2} and
-\textsf{PCRE2} by a tiny margin. In regards to \textsf{SPARQL}, the analysis is
-similar. We remark that in this dataset \textsf{TRE} throws an error on every
-query. Comparing the number of outputs, in Table~\ref{tab:outputs} we can
-observe that \rematch\ generally does more work compared to other engines. This
-is particularly evident when comparing to engines not using look-around
-operators (\textsf{RE2} and \textsf{TRE}). Even for the engines with look-around
-supported, we sometimes cannot capture all the outputs (for instance when two
-nested matches start at the same position), as witnessed in
-Table~\ref{tab:outputs}. Overall, the experiments illustrate that the task of
-encountering \emph{all} the outputs, including overlapping ones, can be done
-with minimal overhead when comparing with classical RegEx matching.
+\textsf{PCRE2} by a tiny margin. When it comes to \textsf{SPARQL} the story is
+similar, now with \textsf{pcregrep} also being fairly competitive. We remark
+that on the \textsf{SPARQL} dataset \textsf{TRE} throws an error on every query,
+while over the \textsf{DNA} dataset \textsf{pcregrep} runs out of buffer, since
+the document is one very long line. Comparing the number of outputs, in
+Table~\ref{tab:outputs} we can observe that \rematch\ generally does more work
+compared to other engines. This is particularly evident when  comparing to
+engines not using look-around operators (\textsf{RE2} and \textsf{TRE}). Even
+for the engines with look-around supported, we sometimes cannot capture all the
+outputs (for instance when two nested matches start at the same position), as
+witnessed in Table~\ref{tab:outputs}. Interestingly, on the \textsf{SPARQL} set
+of experiments look-ahead allows capturing all the outputs. While in this case
+\textsf{PCRE2} does outperform \rematch\ in general, the median result for
+\rematch\ is better, same as in the other two datasets. The bad cases for
+\rematch\ come from the extra bookkeeping needed to assure that all matches will
+be captured. Overall, the experiments illustrate that the task of encountering
+\emph{all} the outputs  can be done with minimal overhead when comparing with
+classical RegEx matching. 
