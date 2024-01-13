@@ -176,17 +176,23 @@ The most consistent improvements come from \textsc{Next index} and
 significant improvements, particularly in the median, but bad cases can hamper
 its performance, as witnessed over the \textsf{SPARQL} dataset. Over all the
 dataset the full version of \rematch\ runs the fastest, as expected. Concerning
-memory consumption (Table~\ref{tab-memory}), \textsc{Node Manager} drastically
-reduces memory usage, since this is its main purpose. \textsc{Offset} and
-\textsc{Light Search} can also reduce memory usage, but their performance varies
-significantly based on the query load. When it comes to time to first output
-(Figure~\ref{fig-optimizations}), both \textsc{Early Output} and \textsc{Light
-Search} show consistent and significant improvements, as does \textsc{Next
-Index}. Over all the tested dimensions, the full version of \rematch\ shows
-superior performance to any a single optimization on its own. Slight hit in
-memory usage is noticeable in some cases due to the interaction of different
-optimization methods in the full version, but overall memory usage is still very
-low.
+memory consumption (Table~\ref{tab-memory}) we first notice that the memory
+consumption can vary considerably when considering the different datasets.
+Notably, \textsf{DNA} demands more memory compared to \textsf{Literature} and
+\textsf{SPARQL}. This for us seems to be related to the fact that the queries
+are in general more complicated in that dataset, and they seem to negate the
+improvements that some optimizations aim to give (notably \textsc{Offset} and
+\textsc{Early Output}) . In terms of the different versions, \textsc{Node
+Manager} drastically reduces memory usage, since this is its main purpose.
+\textsc{Offset} and \textsc{Light Search} can also reduce memory usage, but
+their performance varies significantly based on the query load. When it comes to
+time to first output (Figure~\ref{fig-optimizations}), both \textsc{Early
+Output} and \textsc{Light Search} show consistent and significant improvements,
+as does \textsc{Next Index}. Over all the tested dimensions, the full version of
+\rematch\ shows superior performance to any a single optimization on its own.
+Slight hit in memory usage is noticeable in some cases due to the interaction of
+different optimization methods in the full version, but overall memory usage is
+still very low.
 
 
 \begin{table}[t]
