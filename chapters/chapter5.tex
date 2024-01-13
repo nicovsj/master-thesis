@@ -254,10 +254,12 @@ observe that
 This implies that $R_j = T_j$ for all $0 \leq j \leq n$. If there were some $j$
 where $R_j \neq T_j$, then $\oout(R_j, j) \neq \oout(T_j, j)$ would hold. This
 would mean that $R_j$ and $T_j$ cannot both be empty simultaneously, and thus,
-at least one of $(R_j, j)$ and $(T_j, j)$ would be present in the output
-sequence. However, this would contradict equation \eqref{eq:outseq} since the
-sequences in it are strictly increasing with respect to the positions in the
-document.
+one, and only one of $(R_j, j)$ or $(T_j, j)$ must be present in the output
+sequence. Let us assume that $(R_j, j)$ is present in the output sequence, then
+$R_j = S_\ell$ with $1 \leq \ell \leq m$ satisfying that $i_\ell = j$. However,
+this contradicts equation \eqref{eq:outseq} since $(S_\ell, i_\ell) = (R_j, j)
+\neq \oout(T_j, j)$, which implies necessarily that $\oout(T_0, 0)\cdot \ldots \cdot
+\oout(T_n, n) \neq (S_1, i_1) \cdot \ldots \cdot  (S_m, i_m)$.
 
 Next, considering that $\rho'$ and $\rho$ are distinct and $q_0 = p_0$, there
 must exist a smallest index $0 \leq j \leq m$ for which $q_j = p_j$ and $q_{j+1}
