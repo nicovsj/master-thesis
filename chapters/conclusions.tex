@@ -1,12 +1,30 @@
 % !TeX root = ../Thesis.tex
-This thesis presents \rematch, a novel RegEx engine allowing to find all
-matches. The reader can test the all-match semantics at our beta demo available
-on \url{www.rematch.cl}. Such a semantics is relevant in areas like literature
-or DNA analysis, where overlapping matches do matter. We experimentally prove
-that although \rematch\ does a more demanding job, it does so with almost no
-additional cost when compared to classical RegEx engines, making it a good
-candidate for use cases where all matches are needed.  Finally, this thesis
-presents the architecture, algorithms, and optimizations for capturing all
-matches. However, we see plenty of room for new optimizations like state
-reductions, filtering, or indices. We leave this for future work.
 
+In this thesis, we have meticulously analyzed the methods necessary to construct
+an information extraction regex engine capable of supporting all-match
+semantics, culminating in the development of the \texttt{REmatch} engine. A key
+highlight is the use of enumeration algorithms as the fundamental framework,
+notably the ECS data structure, which facilitates output-linear delay
+enumeration. We have also implemented multiple optimizations to enhance the
+engine's runtime efficiency and memory usage.
+
+The \texttt{REmatch} engine proves to be a strong competitor against leading
+regex engines, despite performing more complex tasks to ensure the extended
+semantics not supported by other engines. The utility of all-match semantics, as
+evidenced in our datasets, is particularly relevant in areas like DNA analysis
+or linguistics, where overlapping matches are desirable in some contexts.
+
+Future development plans must acknowledge that \texttt{REmatch} is not yet a
+complete regex library for information extraction. Currently, the engine
+requires more extensive testing and comprehensive documentation for it to be
+able to participate in a in a production setting. In terms of performance
+enhancements, several areas for optimization exist. For instance, the existing
+\textit{all-match} algorithm does not feature parallel processing, a
+modification that could significantly boost runtime efficiency. Additionally,
+the potential expansion of the REQL query language to include more operators and
+semantics is an exciting prospect. A notable improvement could be the relaxation
+of constraints in REQL queries, allowing for captures under quantifier operators
+(\texttt{*}, \texttt{+}, \texttt{?}, \texttt{\{n,m\}}). This adjustment would
+allow a variable to correspond to multiple spans, providing increased
+versatility in applications such as extracting multiple values from rows in CSV
+files.
