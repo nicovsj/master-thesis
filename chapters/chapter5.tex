@@ -68,10 +68,13 @@ over $d$.
 
 $\EVA$s have some differences compared to logical VAs: (1) an $\EVA$ starts from
 the beginning of the document, and (2) produces output sequences instead of
-mappings. These relaxations plus read-captures transitions will considerably
-simplify the evaluation algorithm.  Indeed, we can show that if we start from a
-logical VA $\cA$, then we can construct an equivalent $\EVA$ $\cE$ in linear
-time. %, for evaluating $\cA$.
+mappings. The reader might also notice that $\EVA$s are conceptualized more
+similarly to transducers than to classical automata (i.e., they can output after
+reading a letter in the document). This distinction underscores the closer
+alignment of these automata with the evaluation process, as it will considerably
+simplify the algorithm. Indeed, we can show that if we start from a logical VA
+$\cA$, then we can construct an equivalent $\EVA$ $\cE$ in linear time.
+%, for evaluating $\cA$.
 \begin{proposition}\label{prop:eVAconstruction} For every logical VA $\cA$
 	compiled from a REQL query \texttt{e}, one can build, in linear time, an
 	$\EVA$ $\cE$ such that $\cE$ evaluated over a document $d$ produces
