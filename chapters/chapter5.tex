@@ -25,18 +25,18 @@ same name for simplicity.}
 Formally, an $\EVA$ $\cE$ is a tuple \((Q, q_0, F, \delta)\), where \(Q\) is a
 finite set of \textit{states}; $q_0 \in Q$ is the initial state; $F\subseteq Q$
 is the set of final states; and $\delta$ is a \textit{transition relation}
-consisting of transitions of the form $(q, a, S, q')$ where $q, q' \in Q$, $a
-\in \Sigma \cup \{\osymbol\}$, and $S$ is a set of variable markers (e.g.,
-$S=\{\Open{x},\Close{y}\}$). The meaning behind the transition $(q, a, S, q')$
-is that when the automaton is in the state $q$ and reads the $i$-th letter $a_i
-= a$, it switches to state $q'$ and outputs $(S, i)$, where $S$ is the set of
-variables that are opened and closed \emph{before} reading the $i$-th letter.
-Intuitively, in a logical VA one could have a run with many contiguous variable
-transitions, followed by a letter transition. In an eVA, this would translate to
-a single transition, where $S$ holds all the variable markers from the
-contiguous variable transitions, and $a$ is the letter from the letter
-transition. In particular, when $S = \emptyset$, the automaton changes the state
-and nothing is output.
+consisting of transitions of the form $(q, C, S, q')$ where $q, q' \in Q$, $C$
+is a char class over the $\Sigma \cup \{\osymbol\}$, and $S$ is a set of
+variable markers (e.g., $S=\{\Open{x},\Close{y}\}$). The meaning behind the
+transition $(q, C, S, q')$ is that when the automaton is in the state $q$ and
+reads the $i$-th letter $a_i \in \cset(C)$, it switches to state $q'$ and
+outputs $(S, i)$, where $S$ is the set of variables that are opened and closed
+\emph{before} reading the $i$-th letter. Intuitively, in a logical VA one could
+have a run with many contiguous variable transitions, followed by a letter
+transition. In an eVA, this would translate to a single transition, where $S$
+holds all the variable markers from the contiguous variable transitions, and $C$
+is the char class holding  a letter from the letter transition. In particular,
+when $S = \emptyset$, the automaton changes the state and nothing is output.
 
 %$\osymbol$ is used to simulate opening variables before reading the first
 %letter of the document. We define the set $\Var(\cE)$ as the set of all
@@ -53,34 +53,30 @@ need $n+1$ possible positions).
 Next we define how an $\EVA$ produces outputs. A \emph{run} $\rho$ of $\cE$ over
 a document $d = a_0 \cdots a_{n-1}$ is a sequence of the form:
 \begin{equation}\label{eq:run}
-	\rho \ = \ q_0 \ \longtrans{b_0 / S_0} \ q_1 \ \longtrans{b_1 / S_1} \ q_2 \ \longtrans{b_2 / S_2} \ \ldots \ \ q_{n} \longtrans{b_{n} / S_n} \ q_{n+1}
+	\rho \ = \ q_0 \ \longtrans{C_0 / S_0} \ q_1 \ \longtrans{C_1 / S_1} \ q_2 \ \longtrans{C_2 / S_2} \ \ldots \ \ q_{n} \longtrans{C_{n} / S_n} \ q_{n+1}
 \end{equation}
-where $b_0 b_1 \ldots b_n = a_0 \ldots a_{n-1} \osymbol$ (the document with an
-special symbol $\osymbol$), $S_j$ is a set of variable markers, and
-$(q_j,b_{j},S_{j}, q_{j+1}) \in \delta$, for $0\leq j\leq n$. Also, we say that
-$\rho$ is \emph{accepting} if $q_{n+1} \in F$. A run $\rho$ like (\ref{eq:run})
-naturally defines an output sequence as $\oout(\rho) = \oout(S_0, 0) \cdot
-\ldots \cdot \oout(S_n, n)$ such that $\oout(S_i, i) = (S_i, i)$ if $S_i \neq
-\emptyset$, and $\epsilon$, otherwise. Finally, the semantics of $\cE$ over $d$,
-denoted by $\semseq{\cE}_d$, is defined as the set of all output sequences
-$\oout(\rho)$ where $\rho$ is an accepting run of $\cE$ over $d$.
+where $C_j$ is a char class such that $a_j \in \cset(C_j)$ if $j < n$ and
+$\osymbol \in C_n$ (the symbol that marks the end of $d$), $S_j$ is a set of
+variable markers, and $(q_j,C_{j},S_{j}, q_{j+1}) \in \delta$, for $0\leq j\leq
+n$. Also, we say that $\rho$ is \emph{accepting} if $q_{n+1} \in F$. A run
+$\rho$ like (\ref{eq:run}) naturally defines an output sequence as $\oout(\rho)
+= \oout(S_0, 0) \cdot \ldots \cdot \oout(S_n, n)$ such that $\oout(S_i, i) =
+(S_i, i)$ if $S_i \neq \emptyset$, and $\epsilon$, otherwise. Finally, the
+semantics of $\cE$ over $d$, denoted by $\semseq{\cE}_d$, is defined as the set
+of all output sequences $\oout(\rho)$ where $\rho$ is an accepting run of $\cE$
+over $d$.
 
-$\EVA$s have several differences compared to logical VAs: (1) an $\EVA$ starts
-from the beginning of the document, (2) produces output sequences instead of
-mappings, and (3) the transitions are fired by symbols (i.e., not by char
-classes). These relaxations plus read-captures transitions will considerably
+$\EVA$s have some differences compared to logical VAs: (1) an $\EVA$ starts from
+the beginning of the document, and (2) produces output sequences instead of
+mappings. These relaxations plus read-captures transitions will considerably
 simplify the evaluation algorithm.  Indeed, we can show that if we start from a
 logical VA $\cA$, then we can construct an equivalent $\EVA$ $\cE$ in linear
 time. %, for evaluating $\cA$.
-\begin{proposition}\label{prop:eVAconstruction}
-	%	For every logical VA $\cA$ compiled from a REQL query, one can build in
-	%	linear time an $\EVA$ $\cE$ such that $\cE$ evaluated over a document
-	%	$d$ produces the same output sequences of mappings from $\cA$ evaluated
-	%	over $d$.
-	For every logical VA $\cA$ compiled from a REQL query \texttt{e} and
-	document $d$, one can build, in linear time, an $\EVA$ $\cE$ such that $\cE$
-	evaluated over $d$ produces precisely the output sequences representing the
-	mappings in $\sem{\cA}_d = \sem{\texttt{e}}_d$.
+\begin{proposition}\label{prop:eVAconstruction} For every logical VA $\cA$
+	compiled from a REQL query \texttt{e}, one can build, in linear time, an
+	$\EVA$ $\cE$ such that $\cE$ evaluated over a document $d$ produces
+	precisely the output sequences representing the mappings in $\sem{\cA}_d =
+	\sem{\texttt{e}}_d$.
 \end{proposition}
 
 \begin{proof}
@@ -90,35 +86,21 @@ time. %, for evaluating $\cA$.
 	$\varepsilon$-logical VAs from the proof of Proposition
 	\ref{prop:logicalVA}. This process begins by defining, for each state $q \in
 	Q$, a \emph{variable-set closure}, $\vclosure(q)$. This closure encompasses
-	all states that are accessible from $q$ solely through variable transitions.
-	\cristian{``through \textbf{zero or more} variable transitions''.}
-	For any state $r$ within $\vclosure(q)$, a series of variable transitions
-	must exist: $(r_0, o_0, r_1), \ldots, (r_n, o_n, r_{n+1})$, where $r_0 = q$,
-	$r_{n+1} = r$, and each $o_i$ represents a variable marker for $0 \leq i
-	\leq n$. 
-	 \cristian{Yo cambiaria la linea anterior por: For any state $r$ within $\vclosure(q)$, a sequence (possibly empty) of variable transitions
-	 	must exist: $(r_0, o_1, r_1), (r_1, o_2, r_2), \ldots, (r_{n-1}, o_n, r_{n})$, where $r_0 = q$,
-	 	$r_{n} = r$, and each $o_i$ represents a variable marker for $0 \leq i
-	 	\leq n$. }
+	all states that are accessible from $q$ solely through zero or more variable
+	transitions. For any state $r$ within $\vclosure(q)$, a (possibly empty)
+	sequence  of variable transitions must exist: $(r_0, x_0, r_1), \ldots,
+	(r_n, x_n, r_{n+1})$, where $r_0 = q$, $r_{n+1} = r$, and each $x_i$
+	represents a variable marker for $0 \leq i \leq n$. 
 	
-	Given $\cA$'s basis in a REQL query, 
-	\cristian{``Given $\cA$'s basis in a REQL query \textbf{that is well-design},''. Notar que lo de well-design es lo que hace la diferencia} 
-	the variable markers set
-	$\{o_i \mid 0 \leq i \leq n\}$ remains consistent across all sequences
-	leading to $r$. For each transition $(r, C, s) \in \delta$, where $C$ is a
-	character class, a new transition $(q, a, \{o_i \mid 0 \leq i \leq n\}, s)$
-	is added to the updated transition relation $\delta'$ if and only if $a \in
-	C$ and appears in $d$.
-	\cristian{Aqui agregaria el cambio de que ExtendedVA puede ocupar charclasses.}
-	Furthermore, if $r$ equals $q_f$, then $q$ should be
-	included in $\cE$'s new accepting states set $F$. 
-	\cristian{Furthermore, if $r$ equals $q_f$, then we add a transition $(q, \osymbol, \{o_i \mid 0 \leq i \leq n\}, q_f)$.}
-	Lastly, for every
-	transition of the form $(q, C, q')$, add $(q, a, \emptyset, q')$ to
-	$\delta'$ iff $a \in C$ and appears in $d$. 
-	\cristian{Aqui también agregas el cambio de que ExtendedVA puede ocupar charclasses.}
-	The resulting eVA $\cE = (Q,
-	\delta', q_0, F)$ will satisfy $\sem{\cE}_d = \sem{\cA}_d$.
+	Given $\cA$'s basis in a REQL query that is well-designed, the variable
+	markers set $\{x_i \mid 0 \leq i \leq n\}$ remains consistent across all
+	sequences leading to $r$. For each transition $(r, C, s) \in \delta$, where
+	$C$ is a character class, a new transition $(q, C, \{x_i \mid 0 \leq i \leq
+	n\}, s)$ is added to the updated transition relation $\delta'$. Furthermore,
+	if $r$ equals $q_f$, then then we add a transition $(q,
+	\texttt{[}\osymbol\texttt{]}, \{x_i \mid 0 \leq i \leq n\}, q_f)$. The
+	resulting eVA $\cE = (Q, q_0, \{q_f\}, \delta')$ will satisfy $\sem{\cE}_d =
+	\sem{\cA}_d$.
 \end{proof}
 
 
@@ -221,11 +203,15 @@ queries with quantifiers or alternations.
 
 To remove duplicate runs from $\EVA$s, we use a subclass called
 \emph{deterministic} $\EVA$s. We say that an $\EVA$ $\cE$ is
-\emph{deterministic} if its transition relation $\delta$ satisfies that for
-every two transitions $(q, a_1, S_1, q_1') \in \delta$ and $(q, a_2, S_2, q_2')
-\in \delta$, if $(a_1, S_1) = (a_2, S_2)$, then $q_1' = q_2'$. In other words,
-given a state $q$, the next state is determined by the pair $(a, S)$. The reader
-can check that $\cE_0$ is deterministic but $\cE_0'$ is not.
+\emph{deterministic} if (1) every transition in $\delta$ is of the type $(q,
+\texttt{[}a\texttt{]}, S, q')$ i.e., its char class contains only one symbol
+(from now on, for single character char classes, we will simply write $a$
+instead of $\texttt{[}a\texttt{]}$ for simplicity), and (2) its transition
+relation $\delta$ satisfies that for every two transitions $(q, a_1, S_1, q_1')
+\in \delta$ and $(q, a_2, S_2, q_2') \in \delta$, if $(a_1, S_1) = (a_2, S_2)$,
+then $q_1' = q_2'$. In other words, given a state $q$, the next state is
+determined by the pair $(a, S)$. The reader can check that $\cE_0$ is
+deterministic but $\cE_0'$ is not.
 \begin{proposition} \label{prop:determinization} Let $\cE^{\odet}$ be a
 	deterministic $\EVA$. Then, for every document $d$ and output sequence
 	$(S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$, there is at most one accepting run
@@ -234,15 +220,17 @@ can check that $\cE_0$ is deterministic but $\cE_0'$ is not.
 \end{proposition}
 \begin{proof}
 	Consider $\cE^{\odet}$, a deterministic eVA. Let $(S_1, i_1)\cdot \ldots
-	\cdot (S_m, i_m)$ be an output sequence and $d = a_0\ldots a_n$ a document.
-	Assume that $(S_1, i_1)\cdot \ldots \cdot (S_n, i_n)$ is in $\semseq{\cE}_d$
-	(the case where it is not is trivial). Under this assumption, there must
-	exist at least one accepting run $\rho$ of $\cE^{\odet}$ over $d$:
+	\cdot (S_m, i_m)$ be an output sequence and $d = a_0\ldots a_{n-1}$ a
+	document. Assume that $(S_1, i_1)\cdot \ldots \cdot (S_m, i_m)$ is in
+	$\semseq{\cE}_d$ (the case where it is not is trivial). Under this
+	assumption, there must exist at least one accepting run $\rho$ of
+	$\cE^{\odet}$ over $d$:
 $$
-\rho \ = \ q_0 \ \longtrans{b_0 / R_0} \ q_1 \ \longtrans{b_1 / R_1} \ q_2 \ \longtrans{b_2 / R_2} \ \ldots \ \ q_{n} \longtrans{b_{m} / R_n} \ q_{n+1}
+\rho \ = \ q_0 \ \longtrans{b_0 / R_0} \ q_1 \ \longtrans{b_1 / R_1} \ q_2 \ \longtrans{b_2 / R_2} \ \ldots \ \ q_{n} \longtrans{b_{n} / R_n} \ q_{n+1}
 $$
-such that $\oout(\rho) = (S_1, i_1)\cdot \cdots \cdot (S_m, i_m)$. Now, suppose
-there is another accepting run $\rho'$ of $\cE^{\odet}$:
+with $b_0b_1\ldots b_n = a_0\ldots a_{n-1} \osymbol$ such that $\oout(\rho) =
+(S_1, i_1)\cdot \cdots \cdot (S_m, i_m)$. Now, suppose there is another
+accepting run $\rho'$ of $\cE^{\odet}$:
 $$
 \rho' \ = \ p_0 \ \longtrans{b_0 / T_0} \ q_1 \ \longtrans{b_1 / T_1} \ p_2 \ \longtrans{b_2 / T_2} \ \ldots \ \ p_{\ell} \longtrans{b_n / T_n} \ p_{n+1}
 $$
@@ -258,8 +246,8 @@ one, and only one of $(R_j, j)$ or $(T_j, j)$ must be present in the output
 sequence. Let us assume that $(R_j, j)$ is present in the output sequence, then
 $R_j = S_\ell$ with $1 \leq \ell \leq m$ satisfying that $i_\ell = j$. However,
 this contradicts equation \eqref{eq:outseq} since $(S_\ell, i_\ell) = (R_j, j)
-\neq \oout(T_j, j)$, which implies necessarily that $\oout(T_0, 0)\cdot \ldots \cdot
-\oout(T_n, n) \neq (S_1, i_1) \cdot \ldots \cdot  (S_m, i_m)$.
+\neq \oout(T_j, j)$, which implies necessarily that $\oout(T_0, 0)\cdot \ldots
+\cdot \oout(T_n, n) \neq (S_1, i_1) \cdot \ldots \cdot  (S_m, i_m)$.
 
 Next, considering that $\rho'$ and $\rho$ are distinct and $q_0 = p_0$, there
 must exist a smallest index $0 \leq j \leq m$ for which $q_j = p_j$ and $q_{j+1}
@@ -278,63 +266,66 @@ the standard determinization procedure for NFAs. More precisely, we define
 $\cE^{\odet} = (Q^{\odet}, q_0^{\odet}, F^{\odet}, \delta^{\odet})$ such that:
 $Q^{\odet} = 2^Q$, $q_0^{\odet} = \{q_0\}$, $F^{\odet} = \{X \mid X \cap F \neq
 \emptyset\}$, and:
-$$
-	\delta^{\odet} = \left\{(X, a, S, X') \mid \forall q' \in Q.\ q' \in X' \, \rightarrow \,  \left(\exists q \in X.\ (q, a, S, q') \in \delta\right)\right\}.
-$$
+\begin{align*}
+	\delta^{\odet} = \Big\{(X, a, S, X') &\mid \forall q' \in Q.\ q' \in X' \, \rightarrow\\ 
+	&\left(\exists q \in X.\ \exists C \in 2^{\Sigma \; \cup \, \{\osymbol\}}.\ (q, C, S, q') \in \delta\ \wedge\ a \in \cset(C) \right) \Big\}
+\end{align*}
 
 \begin{proposition}\label{prop:eVAdet} For every $\EVA$ $\cE$ and document $d$,
 	the $\EVA$ $\cE^{\odet}$ is equivalent to $\cE$, namely,
 	$\semseq{\cE^{\odet}}_d = \semseq{\cE}_d$
 \end{proposition}
-
 \begin{proof}
 	Let $d=a_0\ldots a_{n-1}$, $\cE = (Q, q_0, F, \delta)$ and $\cE^{\odet} =
 		(Q^{\odet},q_0^{\odet}, F^{\odet}, \delta^{\odet})$.
 
-	Let $(S_1, i_1)\cdot \cdots \cdot(S_m, i_m) \in \semseq{\cE}_d$ with $0 \leq
+	Let $(S_0, i_0)\cdot \cdots \cdot(S_m, i_m) \in \semseq{\cE}_d$ with $0 \leq
 		m \leq n$. Then, there is an accepting run $\rho$ of $\cE$ over $d$:
 	$$
-		\rho \ = \ q_0 \ \longtrans{a_0 / R_0} \ q_1 \ \longtrans{a_1 / R_1}  \ldots \ q_{n-1} \longtrans{a_{n-1} / R_{n-1}} \ q_{n} \longtrans{\osymbol / R_n} \ q_{n+1}
+		\rho \ = \ q_0 \ \longtrans{C_0 / R_0} \ q_1 \ \longtrans{C_1 / R_1}  \ldots \ q_{n-1} \longtrans{C_{n-1} / R_{n-1}} \ q_{n} \longtrans{C_n / R_n} \ q_{n+1}
 	$$
-	such that $\oout(\rho) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$. There must
+	such that $\oout(\rho) = (S_1, i_1)\cdot \cdots \cdot(S_m, i_m)$. There must
 	also exist a run $\rho^{\odet}$ of $\cE^{\odet}$ over $d$:
 	$$
 		\rho^{\odet} \ = \ X_0 \ \longtrans{a_0 / R_0} \ X_1 \ \longtrans{a_1 / R_1}  \ldots \ X_{n-1} \longtrans{a_{n-1} / R_{n-1}} \ X_{n} \longtrans{\osymbol / R_n} \ X_{n+1}
 	$$
 	with $X_0 = q_0^{\odet}$. We claim that $q_i \in X_i$ for $0 \leq i \leq n +
 		1$, and thus, $\rho^{\odet}$ is accepting. By induction, it is trivial
-		that $q_0 \in X_0$ (base case). Then, if $q_i \in X_i$, as $(q_i, a_i,
-		S_i, q_{i+1}) \in \delta$ and $(X_i, a_i, R_i, X_{i+1}) \in
-		\delta^{\odet}$, it must be true that $q_{i+1} \in X_{i+1}$ (inductive
-		hypothesis). Given that $q_{n+1} \in F$, we have that $X_{n+1} \in
-		F^{\odet}$, and thus, $\rho^{\odet}$ is accepting. Thus,
-		$\oout(\rho^{\odet}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$, and
-		hence, $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n) \in
+		that $q_0 \in X_0$. Then, if $q_i \in X_i$, as $(q_i, C_i, R_i, q_{i+1})
+		\in \delta$ with $a_i \in \cset(C_i)$ and $(X_i, a_i, R_i, X_{i+1}) \in
+		\delta^{\odet}$, it must be true that $q_{i+1} \in X_{i+1}$ by the
+		definition of $\delta^\odet$. Given that $q_{n+1} \in F$, we have that
+		$X_{n+1} \in F^{\odet}$, and thus, $\rho^{\odet}$ is accepting. Then,
+		$\oout(\rho^{\odet}) = (S_0, i_0)\cdot \cdots \cdot(S_m, i_m)$, and
+		hence, $(S_0, i_0)\cdot \cdots \cdot(S_m, i_m) \in
 		\semseq{\cE^{\odet}}_d$.
 
-	Conversely, let $(S_1, i_1)\cdot \cdots \cdot(S_m, i_m) \in
+	Conversely, let $(S_0, i_0)\cdot \cdots \cdot(S_m, i_m) \in
 		\semseq{\cE^{\odet}}_d$ with $0 \leq m \leq n$. Then, there is an
 		accepting run $\rho^{\odet}$ of $\cE^{\odet}$ over $d$:
 	$$
 		\rho^{\odet} \ = \ X_0 \ \longtrans{a_0 / R_0} \ X_1 \ \longtrans{a_1 / R_1}  \ldots \ X_{n-1} \longtrans{a_{n-1} / R_{n-1}} \ X_{n} \longtrans{\osymbol / R_n} \ X_{n+1}
 	$$
-	such that $\oout(\rho^{\odet}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$. We
+	such that $\oout(\rho^{\odet}) = (S_0, i_0)\cdot \cdots \cdot(S_m, i_m)$. We
 	claim that for each $i \leq n$ and $q \in X_i$, there exists a run:
 	$$
-		\rho_{q,i} \ = \ q_0 \ \longtrans{a_0 / R_0} \ q_1 \ \longtrans{a_1 / R_1}  \ldots \longtrans{a_{i} / R_{i}} \ q_{i} = q.
+		\rho_{q,i} \ = \ q_0 \ \longtrans{C_0 / R_0} \ q_1 \ \longtrans{C_1 / R_1}  \ldots \longtrans{C_{i} / R_{i}} \ q_{i} = q.
 	$$
-	of $\cE$ over $d$. By induction, if the claim is true for $i$, then as
-	$(X_i, a_{i+1}, S_{i+1}, X_{i+1}) \in \delta^{\odet}$ with $X_{i+1} = \{q'
-	\in Q \mid \exists q \in X_i.\ (q, a, S, q') \in \delta\}$, then there must
-	exist $q' \in X_{i}$ such that $(q', a_{i+1}, S_{i+1}, q) \in \delta$. Thus, 
+	of $\cE$ over $d$, where $a_i \in \cset(C_i)$ for $i < n$ and $\osymbol \in
+	\cset(C_n)$. By induction, if the claim is true for $i$, then as $(X_i,
+	a_{i+1}, S_{i+1}, X_{i+1}) \in \delta^{\odet}$ with $$X_{i+1} = \{q' \in Q
+	\mid \exists q \in X_i.\ \exists C \in 2^{\Sigma \; \cup \, \{\osymbol\}}.\
+	(q, C, S, q') \in \delta\ \wedge\ a \in \cset(C)\},$$ then there must exist
+	$q' \in X_{i}$ and char class $C_{i+1}$ such that $(q', C_{i+1}, S_{i+1}, q)
+	\in \delta$ and $a_{i+1} \in \cset(C_{i+1})$. Thus, 
 	$$
-		\rho_{q,i} \ = \ q_0 \ \longtrans{a_0 / R_0} \ q_1 \ \longtrans{a_1 / R_1}  \ldots \longtrans{a_{i} / R_{i}} \ q_{i} = q' \ \longtrans{a_{i+1} / R_{i+1}} \ q_{i+1} = q.
+		\rho_{q,i+1} \ = \ q_0 \ \longtrans{C_0 / R_0} \ q_1 \ \longtrans{C_1 / R_1}  \ldots \longtrans{C_{i} / R_{i}} \ q_{i} = q' \ \longtrans{C_{i+1} / R_{i+1}} \ q_{i+1} = q.
 	$$
 	must exist as a run of $\cE$ over $d$. By induction, then the claim is true
 	for $q \in X_{n+1}$, and as $X_{n+1} \cap F \neq \emptyset$, we take $q \in
 	X_{n+1} \cap F$. Thus, $\rho_{q, n}$ is an accepting run of $\cE$ over $d$,
-	and $\oout(\rho_{q, n}) = (S_1, i_1)\cdot \cdots \cdot(S_n, i_n)$.
-	Therefore, $(S_1, i_1)\cdot \cdots \cdot(S_n, i_n) \in \semseq{\cE}_d$.
+	and $\oout(\rho_{q, n}) = (S_0, i_0)\cdot \cdots \cdot(S_m, i_m)$.
+	Therefore, $(S_0, i_0)\cdot \cdots \cdot(S_m, i_m) \in \semseq{\cE}_d$.
 \end{proof}
 
 
