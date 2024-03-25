@@ -68,8 +68,8 @@
 % Remove chapter from header
 \RequirePackage{fancyhdr}
 \fancypagestyle{plain}{                                                                  %
-\fancyhf{}                                                                                            % clear all header and footer fields
-\fancyfoot[C]{\fontsize{11pt}{11pt}\selectfont\thepage} % except the center
+% \fancyhf{}                                                                                            % clear all header and footer fields
+% \fancyfoot[C]{\fontsize{11pt}{11pt}\selectfont\thepage} % except the center
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 }
