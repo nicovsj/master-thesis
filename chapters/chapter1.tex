@@ -152,6 +152,7 @@ the singleton mapping that only maps $x$ to the span $s$ (e.g., $\mu_1 = [x \to
 domain is the empty set). 
 
 \begin{table}
+	\caption{The inductive semantics of REQL queries.}
 	\begin{align*}
 		\semd{\texttt{e}} & \ = \  \{ \mu \mid (s, \mu) \in \sempd{\texttt{e}} \}\\
 		%  \sempd{\varepsilon} & \ = \  \{ (s, \emptyset) \mid s \in \sub(d) \text{ and } d(s)=\varepsilon\}\\
@@ -171,10 +172,7 @@ domain is the empty set).
 		\sempd{\texttt{e?}} & \ = \  \sempd{\texttt{e}^0} \cup \sempd{\texttt{e}} \\
 		\sempd{\texttt{e\{n,m\}}} & \ = \  \sempd{\texttt{e}^n(\texttt{e?})^{m-n}}
 	\end{align*}
-	\vspace*{-10pt}
-	\caption{The inductive semantics of REQL queries.}
 	\label{tab-semantics}	
-	\vspace{-5mm}
 \end{table}
 
 With the formalism of mappings, we can give a concise declarative semantics for
